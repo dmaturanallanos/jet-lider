@@ -67,6 +67,12 @@ export default async function Login({
               deseado.
             </div>
           )}
+          {q.recovery && (
+            <div role="status" className="notice">
+              Si tu cuenta está habilitada, recibirás un enlace para elegir una contraseña nueva.
+              Revisa también correo no deseado.
+            </div>
+          )}
           <form action={signIn}>
             <label>
               Correo electrónico
@@ -87,12 +93,7 @@ export default async function Login({
               </summary>
               <label style={{ marginTop: 12 }}>
                 Contraseña
-                <input
-                  name="password"
-                  type="password"
-                  autoComplete="current-password"
-                  minLength={12}
-                />
+                <input name="password" type="password" autoComplete="current-password" />
               </label>
               <button
                 className="btn"
@@ -103,6 +104,9 @@ export default async function Login({
                 Ingresar con contraseña
               </button>
             </details>
+            <button className="btn ghost" name="method" value="recovery">
+              Olvidé mi contraseña
+            </button>
           </form>
           <div className="row muted" style={{ fontSize: 11 }}>
             <ShieldCheck size={18} /> Acceso privado por invitación. Sin registro público.

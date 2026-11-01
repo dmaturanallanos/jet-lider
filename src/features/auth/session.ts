@@ -3,14 +3,20 @@ import { redirect } from 'next/navigation';
 import { cache } from 'react';
 import { canManage } from '@/lib/permissions';
 import { configured, serverDb } from '@/lib/supabase/server';
-export const requireSession = cache(async function requireSession() {
-  if (!configured()) redirect('/acceso');
+export const optionalAuth = cache(async function optionalAuth() {
+  if (!configured()) return null;
   const db = await serverDb();
   const {
     data: { user },
     error,
   } = await db.auth.getUser();
-  if (error || !user) redirect('/acceso');
+  if (error || !user) return null;
+  return { db, user };
+});
+export const requireSession = cache(async function requireSession() {
+  const auth = await optionalAuth();
+  if (!auth) redirect('/acceso');
+  const { db, user } = auth;
   const { data: profile } = await db.from('profiles').select('*').eq('id', user.id).single();
   const { data: active } = await db.rpc('is_active');
   if (!profile || !active)

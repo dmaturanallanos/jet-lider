@@ -1,4 +1,35 @@
 import { test, expect } from '@playwright/test';
+test('el ingreso admite contraseñas existentes de menos de doce caracteres', async ({ page }) => {
+  await page.goto('/acceso');
+  await page.getByText('Usar contraseña de mi cuenta', { exact: true }).click();
+  const password = page.getByLabel('Contraseña', { exact: true });
+  await password.fill('ocho1234');
+  expect(await password.evaluate((input: HTMLInputElement) => input.validity.tooShort)).toBe(false);
+  await expect(page.getByRole('button', { name: 'Olvidé mi contraseña' })).toBeVisible();
+});
+test('la recuperación sin enlace no permite cambiar una contraseña', async ({ page }) => {
+  await page.goto('/restablecer-contrasena');
+  await expect(page.getByRole('heading', { name: 'Restablecer contraseña' })).toBeVisible();
+  await expect(page.getByRole('status')).toContainText('Abre el enlace de recuperación');
+  await expect(page.getByRole('button', { name: 'Guardar nueva contraseña' })).toHaveCount(0);
+});
+test('un enlace de recuperación dirigido al inicio se lleva a la pantalla correcta y limpia sus tokens', async ({
+  page,
+}) => {
+  await page.route('**/auth/v1/**', (route) =>
+    route.fulfill({
+      status: 400,
+      contentType: 'application/json',
+      body: JSON.stringify({ code: 'invalid_token', msg: 'Test token' }),
+    }),
+  );
+  await page.goto(
+    '/#type=recovery&access_token=test-only-invalid&refresh_token=test-only-invalid',
+  );
+  await expect(page.getByRole('heading', { name: 'Restablecer contraseña' })).toBeVisible();
+  await expect.poll(() => new URL(page.url()).hash).toBe('');
+  await expect(page.getByRole('button', { name: 'Guardar nueva contraseña' })).toHaveCount(0);
+});
 test('acceso cerrado y sin registro público', async ({ page }) => {
   await page.goto('/');
   await expect(page).toHaveURL(/acceso/);
@@ -55,6 +86,8 @@ test('tareas con detalle accesible y tablero', async ({ page }) => {
   await expect(page.locator('.boardcol')).toHaveCount(4);
 });
 test('tema persiste y la PWA no almacena respuestas operativas', async ({ page, context }) => {
+  const errors: string[] = [];
+  page.on('pageerror', (e) => errors.push(e.message));
   await page.goto('/demo/configuracion');
   await page.getByLabel('Tema visual').selectOption('dark');
   await expect(page.locator('html')).toHaveClass(/dark/);
@@ -77,6 +110,7 @@ test('tema persiste y la PWA no almacena respuestas operativas', async ({ page, 
   expect((await manifest.json()).display).toBe('standalone');
   for (const size of [192, 512])
     expect((await context.request.get(`/icons/icon-${size}.png`)).ok()).toBe(true);
+  expect(errors).toEqual([]);
 });
 test('sin conexión muestra aviso y navegación segura de respaldo', async ({ page, context }) => {
   await page.goto('/demo');

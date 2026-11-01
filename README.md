@@ -83,6 +83,14 @@ En **Magic Link**:
 <a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=magiclink">Ingresar a Jet Líder</a>
 ```
 
+En **Reset Password**, usa:
+
+```html
+<a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=recovery">Elegir una contraseña nueva</a>
+```
+
+Agrega también `https://TU_DOMINIO/restablecer-contrasena` a Redirect URLs (en desarrollo, `http://localhost:3000/restablecer-contrasena`). «Olvidé mi contraseña» solicita el correo; el enlace permite elegir una contraseña nueva de al menos 12 caracteres. La pantalla admite token hash validado en el servidor, PKCE y enlaces de recuperación con tokens en el fragmento del navegador. No registra los tokens ni envía contraseñas a logs. El ingreso con una contraseña existente no exige esa longitud de creación: su validez la determina Auth.
+
 La ruta también admite el intercambio PKCE mediante `code`, sin aceptar destinos arbitrarios de redirección. No introduzcas claves de API en plantillas. En la plataforma local revisa el buzón de pruebas cuya URL muestra `supabase status`.
 
 ### Administrador inicial

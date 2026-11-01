@@ -183,7 +183,8 @@ export function Workspace({
               aria-label="Cambiar tema claro u oscuro"
               onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
             >
-              {resolvedTheme === 'dark' ? <Sun /> : <Moon />}
+              <Sun className="hidden dark:block" />
+              <Moon className="block dark:hidden" />
             </button>
           </div>
         </header>

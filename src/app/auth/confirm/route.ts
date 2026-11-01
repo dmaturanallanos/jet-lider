@@ -18,9 +18,14 @@ export async function GET(request: NextRequest) {
     });
     ok = !error;
   }
+  const recovery = q.get('type') === 'recovery' || q.get('next') === '/restablecer-contrasena';
   return NextResponse.redirect(
     new URL(
-      ok ? '/' : '/acceso?error=Enlace%20inválido%20o%20vencido.%20Solicita%20uno%20nuevo.',
+      ok
+        ? recovery
+          ? '/restablecer-contrasena'
+          : '/'
+        : '/acceso?error=Enlace%20inválido%20o%20vencido.%20Solicita%20uno%20nuevo.',
       request.url,
     ),
   );

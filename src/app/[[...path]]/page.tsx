@@ -6,6 +6,8 @@ import { filterDemo } from '@/features/shared/demo-filters';
 import type { View } from '@/features/shared/types';
 import { today } from '@/utils/dates';
 import { z } from 'zod';
+import { optionalAuth } from '@/features/auth/session';
+import { AuthEntryRedirect } from '@/features/auth/recovery-hash';
 export const dynamic = 'force-dynamic';
 export default async function Page({
   params,
@@ -43,6 +45,7 @@ export default async function Page({
     if (q[key] && !z.uuid().safeParse(q[key]).success) delete q[key];
   for (const key of ['dueFrom', 'dueTo'])
     if (q[key] && !z.iso.date().safeParse(q[key]).success) delete q[key];
+  if (!demo && !(await optionalAuth())) return <AuthEntryRedirect />;
   const data = demo ? filterDemo(demoData(date), q) : await getWorkspace(view, date, q);
   if (view === 'equipo' && data.profile.role !== 'admin') redirect('/');
   return (
