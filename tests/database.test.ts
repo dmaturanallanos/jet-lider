@@ -93,6 +93,40 @@ afterAll(async () => {
   await db?.close();
 });
 describe('Integración SQL real en PostgreSQL embebido (sin servicios Supabase)', () => {
+  it('solo el administrador elimina turnos y la auditoría conserva los datos anteriores', async () => {
+    const result = await shift(w1);
+    const target = (result.rows[0] as { id: string }).id;
+    await asUser(u1);
+    expect(
+      (await db.query('delete from shifts where id=$1 returning id', [target])).rows,
+    ).toHaveLength(0);
+    await asUser(admin);
+    expect(
+      (await db.query('delete from shifts where id=$1 and version=1 returning id', [target])).rows,
+    ).toHaveLength(1);
+    const audit = await db.query<{
+      actor_id: string;
+      before_data: { worker_id: string };
+      after_data: unknown;
+    }>(
+      "select actor_id,before_data,after_data from activity_logs where entity_id=$1 and action='DELETE'",
+      [target],
+    );
+    expect(audit.rows[0].actor_id).toBe(admin);
+    expect(audit.rows[0].before_data.worker_id).toBe(w1);
+    expect(audit.rows[0].after_data).toBeNull();
+  });
+  it('una versión desactualizada no elimina el turno y los vínculos de bitácora se conservan', async () => {
+    const result = await shift(w1);
+    const target = (result.rows[0] as { id: string }).id;
+    await db.query("update shifts set notes='Edición simultánea' where id=$1", [target]);
+    expect(
+      (await db.query('delete from shifts where id=$1 and version=1 returning id', [target])).rows,
+    ).toHaveLength(0);
+    await db.query('update logbook_entries set shift_id=$1 where id=$2', [target, entry]);
+    await denied('delete from shifts where id=$1 and version=2', [target], /foreign key/);
+    expect((await db.query('select id from shifts where id=$1', [target])).rows).toHaveLength(1);
+  });
   it('elimina una ausencia y su nota privada de manera atómica conservando auditoría', async () => {
     const r = await db.query<{ id: string }>('select save_absence($1,$2) as id', [
       JSON.stringify({

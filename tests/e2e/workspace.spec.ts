@@ -23,9 +23,7 @@ test('un enlace de recuperación dirigido al inicio se lleva a la pantalla corre
       body: JSON.stringify({ code: 'invalid_token', msg: 'Test token' }),
     }),
   );
-  await page.goto(
-    '/#type=recovery&access_token=test-only-invalid&refresh_token=test-only-invalid',
-  );
+  await page.goto('/#type=recovery&access_token=test-only-invalid&refresh_token=test-only-invalid');
   await expect(page.getByRole('heading', { name: 'Restablecer contraseña' })).toBeVisible();
   await expect.poll(() => new URL(page.url()).hash).toBe('');
   await expect(page.getByRole('button', { name: 'Guardar nueva contraseña' })).toHaveCount(0);
@@ -74,6 +72,16 @@ test('demostración no presenta mutaciones ficticias como guardadas', async ({ p
     page.getByRole('status').filter({ hasText: 'Demostración de solo lectura.' }),
   ).toBeVisible();
   await expect(page.getByRole('dialog')).toHaveCount(0);
+});
+test('el detalle ofrece eliminar turno y la demostración impide borrados', async ({ page }) => {
+  await page.goto('/demo/turnos?date=2026-11-02&mode=grid');
+  await page.locator('button.shift').first().click();
+  await page.getByRole('button', { name: 'Eliminar turno', exact: true }).click();
+  await expect(
+    page.getByRole('status').filter({ hasText: 'Demostración de solo lectura.' }),
+  ).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Confirmar eliminación' })).toHaveCount(0);
+  await expect(page.getByRole('dialog')).toBeVisible();
 });
 test('tareas con detalle accesible y tablero', async ({ page }) => {
   await page.goto('/demo/tareas?date=2026-11-02');

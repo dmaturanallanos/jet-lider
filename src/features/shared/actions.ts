@@ -144,6 +144,26 @@ export async function mutate(action: string, input: unknown): Promise<ActionResu
         check(error);
         break;
       }
+      case 'shift-delete': {
+        await requireAdmin();
+        const v = z.object({ id, version: z.number().int().positive() }).parse(input);
+        const { data, error } = await db
+          .from('shifts')
+          .delete()
+          .eq('id', v.id)
+          .eq('version', v.version)
+          .select('id');
+        if (error?.code === '23503')
+          throw new Error(
+            'Este turno está relacionado con la bitácora. Cancélalo para conservar esos registros.',
+          );
+        check(error);
+        if (!data?.length)
+          throw new Error(
+            'El turno cambió o ya fue eliminado. Cierra el detalle y recarga el calendario antes de intentar de nuevo.',
+          );
+        break;
+      }
       case 'absence': {
         await requireAdmin();
         const v = absenceSchema.parse(input);
@@ -250,9 +270,11 @@ export async function mutate(action: string, input: unknown): Promise<ActionResu
     return {
       ok: true,
       message:
-        action === 'invite'
-          ? 'Invitación procesada. Revisa el correo y el estado de acceso.'
-          : 'Cambios guardados correctamente.',
+        action === 'shift-delete'
+          ? 'Turno eliminado. Se conservó el registro en el historial.'
+          : action === 'invite'
+            ? 'Invitación procesada. Revisa el correo y el estado de acceso.'
+            : 'Cambios guardados correctamente.',
     };
   } catch (error) {
     unstable_rethrow(error);

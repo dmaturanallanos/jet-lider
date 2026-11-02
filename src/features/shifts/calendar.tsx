@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { ChevronLeft, ChevronRight, Copy, CalendarDays, Plus, Sun } from 'lucide-react';
 import { canManage } from '@/lib/permissions';
+import { DeleteShift } from './delete-shift';
 import type { ViewProps } from '@/features/shared/view-props';
 import type { Row } from '@/types/database';
 import { Avatar, Badge, Empty, Modal, Status } from '@/components/ui/primitives';
@@ -254,7 +255,16 @@ export function Calendar(props: ViewProps) {
               {clock(selected.updated_at)}. Versión {selected.version}.
             </small>
           </div>
-          <div className="dialogfoot">
+          <div className="dialogfoot" style={{ flexWrap: 'wrap' }}>
+            {admin && (
+              <DeleteShift
+                key={selected.id}
+                shift={selected}
+                demo={props.demo}
+                notify={props.notify}
+                onDeleted={() => setSelected(null)}
+              />
+            )}
             <button className="btn" onClick={() => setSelected(null)}>
               Cerrar
             </button>
