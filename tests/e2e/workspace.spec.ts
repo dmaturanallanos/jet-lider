@@ -83,6 +83,34 @@ test('el detalle ofrece eliminar turno y la demostración impide borrados', asyn
   await expect(page.getByRole('button', { name: 'Confirmar eliminación' })).toHaveCount(0);
   await expect(page.getByRole('dialog')).toBeVisible();
 });
+test('asistencia diaria, Excel y borrado de observaciones están disponibles y la demo no guarda', async ({
+  page,
+}) => {
+  await page.goto('/demo/turnos?date=2020-11-02&mode=day');
+  await expect(page.getByRole('button', { name: 'Excel semanal de asistencia' })).toBeVisible();
+  await page.locator('button.shift').first().click();
+  await expect(
+    page.getByRole('heading', { name: 'Asistencia del turno', exact: true }),
+  ).toBeVisible();
+  await page.getByLabel('Resultado de asistencia').selectOption('present');
+  await page.getByRole('button', { name: 'Guardar asistencia', exact: true }).click();
+  await expect(
+    page.getByRole('status').filter({ hasText: 'Demostración de solo lectura.' }),
+  ).toBeVisible();
+  await page.goto('/demo/bitacora?date=2020-11-02');
+  await page.locator('a.panel.note').first().click();
+  await page.getByRole('button', { name: 'Eliminar observación', exact: true }).click();
+  await expect(
+    page.getByRole('status').filter({ hasText: 'Demostración de solo lectura.' }),
+  ).toBeVisible();
+});
+test('Excel requiere sesión y no devuelve información privada sin autenticar', async ({
+  request,
+}) => {
+  const result = await request.get('/api/reports/attendance?week=2020-11-02');
+  expect(result.status()).toBe(401);
+  expect(result.headers()['cache-control']).toContain('no-store');
+});
 test('tareas con detalle accesible y tablero', async ({ page }) => {
   await page.goto('/demo/tareas?date=2026-11-02');
   await page.getByRole('link', { name: /Preparar despacho de primera ruta/ }).click();

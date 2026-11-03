@@ -45,6 +45,83 @@ export async function mutate(action: string, input: unknown): Promise<ActionResu
   try {
     const { db, user, profile } = await requireSession();
     switch (action) {
+      case 'attendance': {
+        await requireAdmin();
+        const v = z
+          .object({
+            shift_id: id,
+            status: z.enum(['present', 'absent']).nullable(),
+            notes: z.string().max(1000),
+            version: z.number().int().min(0),
+          })
+          .parse(input);
+        const { error } = await db.rpc('save_attendance', {
+          target_shift: v.shift_id,
+          attendance_status: v.status ?? 'pending',
+          attendance_notes: v.notes,
+          expected_version: v.version,
+        });
+        if (error?.code === 'PGRST202')
+          throw new Error(
+            'Falta aplicar la migración 202611030013 en Supabase. No se guardó la asistencia.',
+          );
+        check(error);
+        break;
+      }
+      case 'delete-record': {
+        await requireAdmin();
+        const v = z
+          .object({
+            kind: z.enum(['task', 'entry', 'comment', 'worker']),
+            id,
+            version: z.number().int().positive(),
+          })
+          .parse(input);
+        const { data: files, error } = await db.rpc('delete_operational_record', {
+          record_kind: v.kind,
+          target_id: v.id,
+          expected_version: v.version,
+        });
+        if (error?.code === 'PGRST202')
+          throw new Error(
+            'Falta aplicar la migración 202611030013 en Supabase. No se eliminó el registro.',
+          );
+        check(error);
+        const paths = z
+          .array(
+            z.object({
+              bucket: z.enum(['avatars', 'task-evidence', 'logbook-evidence']),
+              path: z.string(),
+            }),
+          )
+          .parse(files);
+        let pending = false;
+        if (paths.length) {
+          try {
+            const storage = adminDb().storage;
+            for (const bucket of ['avatars', 'task-evidence', 'logbook-evidence'] as const) {
+              const selected = paths.filter((p) => p.bucket === bucket).map((p) => p.path);
+              for (let i = 0; i < selected.length; i += 100) {
+                try {
+                  const cleanup = await storage.from(bucket).remove(selected.slice(i, i + 100));
+                  if (cleanup.error) pending = true;
+                } catch {
+                  pending = true;
+                }
+              }
+            }
+          } catch {
+            pending = true;
+          }
+        }
+        revalidatePath('/', 'layout');
+        return {
+          ok: true,
+          message: pending
+            ? 'Registro eliminado. Hay archivos pendientes de limpieza; ya no son accesibles desde el registro.'
+            : 'Registro eliminado. Se conservó la auditoría.',
+        };
+      }
       case 'administrator-add': {
         await requireAdmin();
         const v = z
@@ -290,13 +367,15 @@ export async function mutate(action: string, input: unknown): Promise<ActionResu
     return {
       ok: true,
       message:
-        action === 'administrator-add'
-          ? 'Cuenta administradora habilitada en su propio espacio. Tus datos no se comparten.'
-          : action === 'shift-delete'
-            ? 'Turno eliminado. Se conservó el registro en el historial.'
-            : action === 'invite'
-              ? 'Invitación procesada. Revisa el correo y el estado de acceso.'
-              : 'Cambios guardados correctamente.',
+        action === 'attendance'
+          ? 'Asistencia actualizada. Sin registrar no significa inasistencia.'
+          : action === 'administrator-add'
+            ? 'Cuenta administradora habilitada en su propio espacio. Tus datos no se comparten.'
+            : action === 'shift-delete'
+              ? 'Turno eliminado. Se conservó el registro en el historial.'
+              : action === 'invite'
+                ? 'Invitación procesada. Revisa el correo y el estado de acceso.'
+                : 'Cambios guardados correctamente.',
     };
   } catch (error) {
     unstable_rethrow(error);

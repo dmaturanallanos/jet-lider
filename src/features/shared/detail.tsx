@@ -7,6 +7,7 @@ import { Modal, Status, Badge } from '@/components/ui/primitives';
 import { clock, dateLabel } from '@/utils/dates';
 import { safeMutate as mutate } from './client-mutation';
 import { PrivateImage, UploadImage } from './files';
+import { DeleteRecord } from './delete-record';
 export function Detail(props: ViewProps & { onClose: () => void }) {
   const { data, params, view, demo, notify, edit, onClose } = props;
   const admin = canManage(data.profile.role);
@@ -118,6 +119,18 @@ export function Detail(props: ViewProps & { onClose: () => void }) {
             </div>
             <hr style={{ borderColor: 'var(--line)' }} />
             <h2>Comentarios</h2>
+            {admin && (
+              <DeleteRecord
+                kind="task"
+                id={task.id}
+                version={task.version}
+                label="Eliminar tarea"
+                description="Se eliminarán esta tarea, sus responsables, comentarios y evidencias. Los registros de bitácora relacionados deben corregirse primero."
+                demo={demo}
+                notify={notify}
+                onDeleted={onClose}
+              />
+            )}
             {data.comments.map((c) => (
               <div className="notice" key={c.id}>
                 <p style={{ whiteSpace: 'pre-wrap' }}>{c.body}</p>
@@ -125,6 +138,18 @@ export function Detail(props: ViewProps & { onClose: () => void }) {
                   {data.authors.find((a) => a.user_id === c.created_by)?.name ?? 'Responsable'} ·{' '}
                   {dateLabel(c.created_at)} · {clock(c.created_at)}
                 </small>
+                {admin && (
+                  <DeleteRecord
+                    kind="comment"
+                    id={c.id}
+                    version={c.version}
+                    label="Eliminar comentario"
+                    description="Se eliminará este comentario de la tarea."
+                    demo={demo}
+                    notify={notify}
+                    onDeleted={() => router.refresh()}
+                  />
+                )}
               </div>
             ))}
             {!data.comments.length && <p className="muted">Todavía no hay comentarios.</p>}
@@ -228,6 +253,18 @@ export function Detail(props: ViewProps & { onClose: () => void }) {
                 Editar registro
               </button>
             )}
+            {admin && (
+              <DeleteRecord
+                kind="entry"
+                id={entry.id}
+                version={entry.version}
+                label="Eliminar observación"
+                description="Se eliminarán esta observación y sus fotografías."
+                demo={demo}
+                notify={notify}
+                onDeleted={onClose}
+              />
+            )}
             <h2>Fotografías</h2>
             <UploadImage kind="entry" parent={entry.id} demo={demo} notify={notify} />
             <div className="photogrid">
@@ -266,6 +303,18 @@ export function Detail(props: ViewProps & { onClose: () => void }) {
             >
               Editar trabajador
             </button>
+            {admin && (
+              <DeleteRecord
+                kind="worker"
+                id={worker.id}
+                version={worker.version}
+                label="Eliminar trabajador"
+                description="Se eliminará esta ficha y sus datos privados. Solo se permite si no tiene cuenta vinculada ni registros operativos relacionados; en ese caso utiliza Desactivar."
+                demo={demo}
+                notify={notify}
+                onDeleted={onClose}
+              />
+            )}
             <a className="link" href={props.link('turnos', { worker: worker.id })}>
               Consultar turnos →
             </a>

@@ -140,6 +140,14 @@ Si cambias el correo después de reservar una invitación, el sistema exige reso
 
 La confirmación de turnos es una acción administrativa, **no registra asistencia**. Las horas son duración real menos descanso y **no calculan remuneraciones**. Los totales semanales corresponden a turnos que comienzan en esa semana, incluyendo su duración completa si terminan el lunes siguiente. En una agenda se muestra también el turno que continúa desde el día anterior.
 
+### Asistencia diaria, Excel semanal y correcciones
+
+Aplica la migración `202611030013_attendance_and_corrections.sql`, posterior a la separación de espacios. Desde Turnos, abre el detalle y registra **Asistió**, **No asistió** o vuelve a **Sin registrar**. Solo el administrador del espacio puede marcar y corregir; se admiten turnos asignados del día actual o anteriores. Un pendiente nunca se considera automáticamente una inasistencia. No hay fichaje ni cálculo de horas reales trabajadas.
+
+El botón **Excel semanal de asistencia** descarga un `.xlsx` con resumen por trabajador y día y detalle de todos los turnos de la semana seleccionada, de lunes a domingo. Incluye la semana completa del espacio, sin aplicar filtros de pantalla. Las fechas y horas se muestran en America/Santiago y los nocturnos se agrupan por su fecha local de inicio. El archivo es una instantánea de datos guardados, sin datos personales de contacto ni vínculos a otros espacios.
+
+Los detalles de observaciones, tareas, comentarios y trabajadores incorporan **Eliminar**, con confirmación y auditoría. Eliminar una observación incluye sus fotografías; eliminar una tarea incluye responsables, comentarios y evidencias, pero exige corregir antes cualquier referencia de bitácora. Solo se eliminan trabajadores sin cuenta vinculada ni historial operativo: si tienen registros, se deben corregir esas relaciones o desactivar la ficha. Las fotos se limpian en el servidor; ante fallos, se informa la limpieza pendiente y puede utilizarse el script de huérfanos. Consulta [reglas, migración y verificación](docs/ASISTENCIA_EXCEL_CORRECCIONES.md).
+
 Se conserva la hora de Chile al repetir/copiar; nunca se suman bloques fijos de 24 horas. Se rechazan explícitamente horas ambiguas o inexistentes. La vista previa muestra duraciones reales; un cambio de horario puede sumar o restar una hora respecto de la diferencia del reloj.
 
 ## Datos, permisos y mantenimiento
@@ -246,7 +254,7 @@ Configura las variables de servidor/públicas en el alojamiento, HTTPS, origen e
 
 ## Límites conocidos de la primera versión
 
-- Un único espacio operativo; no hay multiempresa, asistencia, remuneraciones, inventario, reportes, notificaciones ni solicitudes de cambio. No se muestran accesos a esos módulos.
+- Un espacio privado por administrador, sin selector de espacios ni membresías múltiples. La asistencia es una marca manual por turno y existe exportación semanal a Excel; no hay fichaje, cálculo de remuneraciones, inventario, notificaciones ni solicitudes de cambio.
 - Equipo paginado de 50 perfiles; selectores del equipo acotados a 500. Calendario acotado a 1000 registros por consulta: si se alcanza el límite se informa un error, sin presentar un calendario parcial como completo. Para equipos mayores se deben ampliar las consultas de selectores.
 - Tareas/bitácora: 50 registros por página; auditoría: 20; comentarios: 50. El resumen de bitácora se refiere a los registros visibles en la consulta y sus permisos, no a un reporte global. Los indicadores del dashboard conectado usan agregados de PostgreSQL.
 - Los adjuntos de un detalle se limitan a 50; el texto de bitácora/tareas no es búsqueda de texto completo. Las nuevas ausencias pueden usar tipos escritos por el administrador, sin catálogo administrable separado.

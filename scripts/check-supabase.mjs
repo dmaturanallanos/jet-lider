@@ -22,6 +22,8 @@ const [schemaResponse, settingsResponse, buckets, admins, users, anonPermission]
 const schema = await schemaResponse.json();
 const settings = await settingsResponse.json();
 const expected = [
+  'workspaces',
+  'shift_attendance',
   'workers',
   'profiles',
   'worker_private_details',
@@ -74,4 +76,4 @@ if (
   bucketState.some((b) => !b.private)
 )
   process.exitCode = 1;
-else if (settings.disable_signup !== true || admins.count !== 1) process.exitCode = 2;
+else if (settings.disable_signup !== true || !admins.count) process.exitCode = 2;

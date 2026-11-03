@@ -195,6 +195,48 @@ export type Database = {
         };
         Relationships: [];
       };
+      shift_attendance: {
+        Row: {
+          id: string;
+          workspace_id: string;
+          shift_id: string;
+          worker_id: string;
+          status: string;
+          notes: string;
+          created_by: string;
+          updated_by: string;
+          created_at: string;
+          updated_at: string;
+          version: number;
+        };
+        Insert: {
+          id?: string;
+          workspace_id?: string;
+          shift_id: string;
+          worker_id: string;
+          status: string;
+          notes?: string;
+          created_by?: string;
+          updated_by?: string;
+          created_at?: string;
+          updated_at?: string;
+          version?: number;
+        };
+        Update: {
+          id?: string;
+          workspace_id?: string;
+          shift_id?: string;
+          worker_id?: string;
+          status?: string;
+          notes?: string;
+          created_by?: string;
+          updated_by?: string;
+          created_at?: string;
+          updated_at?: string;
+          version?: number;
+        };
+        Relationships: [];
+      };
       shift_series: {
         Row: {
           id: string;
@@ -630,11 +672,11 @@ export type Database = {
     };
     Views: { [_ in never]: never };
     Functions: {
-      can_entry: { Args: { target: string }; Returns: boolean };
+      is_active: { Args: Record<string, never>; Returns: boolean };
       is_admin: { Args: Record<string, never>; Returns: boolean };
       can_edit_entry: { Args: { target: string }; Returns: boolean };
-      is_active: { Args: Record<string, never>; Returns: boolean };
       can_task: { Args: { target: string }; Returns: boolean };
+      can_entry: { Args: { target: string }; Returns: boolean };
       save_shift_batch: {
         Args: { request_id: string; items: Json; series_description?: string };
         Returns: number;
@@ -644,25 +686,39 @@ export type Database = {
         Args: Record<string, never>;
         Returns: { email: string | null; phone: string | null }[];
       };
+      save_attendance: {
+        Args: {
+          target_shift: string;
+          attendance_status: string;
+          attendance_notes: string;
+          expected_version: number;
+        };
+        Returns: undefined;
+      };
       set_avatar: { Args: { target_worker: string; object_path: string }; Returns: undefined };
-      current_workspace: { Args: Record<string, never>; Returns: string };
+      save_absence: { Args: { payload: Json; private_note: string }; Returns: string };
       my_worker_id: { Args: Record<string, never>; Returns: string };
       save_task: {
         Args: { payload: Json; assignees: string[]; expected_version?: number };
         Returns: string;
       };
       invitee_account: { Args: { target_worker: string }; Returns: string };
-      grant_administrator: {
-        Args: { account_email: string; administrator_name: string };
-        Returns: string;
-      };
-      save_absence: { Args: { payload: Json; private_note: string }; Returns: string };
       save_worker: {
         Args: { payload: Json; private_data: Json; expected_version?: number };
         Returns: string;
       };
+      grant_administrator: {
+        Args: { account_email: string; administrator_name: string };
+        Returns: string;
+      };
+      current_workspace: { Args: Record<string, never>; Returns: string };
+      delete_operational_record: {
+        Args: { record_kind: string; target_id: string; expected_version: number };
+        Returns: Json;
+      };
       dashboard_summary: { Args: { day: string; week_start: string }; Returns: Json };
       worker_impact: { Args: { target: string }; Returns: Json };
+      attendance_week: { Args: { week_start: string }; Returns: Json };
     };
     Enums: { [_ in never]: never };
     CompositeTypes: { [_ in never]: never };

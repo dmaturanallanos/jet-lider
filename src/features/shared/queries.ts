@@ -245,7 +245,21 @@ export async function getWorkspace(
       ? await db.from('profiles').select('*').eq('role', 'admin').order('created_at').limit(100)
       : { data: [], error: null };
   if (administrators.error) throw new Error('No se pudieron cargar los administradores.');
+  const shiftIds = admin ? (shifts.data ?? []).map((s) => s.id) : [];
+  const attendance = await Promise.all(
+    Array.from({ length: Math.ceil(shiftIds.length / 100) }, (_, i) =>
+      db
+        .from('shift_attendance')
+        .select('*')
+        .in('shift_id', shiftIds.slice(i * 100, i * 100 + 100)),
+    ),
+  );
+  if (attendance.some((result) => result.error))
+    throw new Error(
+      'No se pudo cargar la asistencia. Revisa la migración 202611030013 y la conexión.',
+    );
   return {
+    attendance: attendance.flatMap((result) => result.data ?? []),
     administrators: administrators.data ?? [],
     authors: authors.data ?? [],
     summary: counts.success ? counts.data : undefined,

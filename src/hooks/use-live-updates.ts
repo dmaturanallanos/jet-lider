@@ -16,6 +16,16 @@ export function useLiveUpdates(enabled: boolean, workspaceId: string) {
       .channel(`operacion:${workspaceId}`)
       .on(
         'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'shift_attendance',
+          filter: `workspace_id=eq.${workspaceId}`,
+        },
+        refresh,
+      )
+      .on(
+        'postgres_changes',
         { event: '*', schema: 'public', table: 'shifts', filter: `workspace_id=eq.${workspaceId}` },
         refresh,
       )

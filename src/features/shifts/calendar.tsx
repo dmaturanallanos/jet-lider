@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { ChevronLeft, ChevronRight, Copy, CalendarDays, Plus, Sun } from 'lucide-react';
 import { canManage } from '@/lib/permissions';
 import { DeleteShift } from './delete-shift';
+import { Attendance, attendanceLabels } from './attendance';
+import { ExportAttendance } from './export-attendance';
 import type { ViewProps } from '@/features/shared/view-props';
 import type { Row } from '@/types/database';
 import { Avatar, Badge, Empty, Modal, Status } from '@/components/ui/primitives';
@@ -69,6 +71,19 @@ export function Calendar(props: ViewProps) {
           {{ scheduled: 'Programado', confirmed: 'Confirmado', cancelled: 'Cancelado' }[s.status] ??
             s.status}
         </small>
+        {admin && (
+          <small>
+            {
+              attendanceLabels[
+                data.attendance?.find((a) => a.shift_id === s.id)?.status === 'present'
+                  ? 'present'
+                  : data.attendance?.find((a) => a.shift_id === s.id)?.status === 'absent'
+                    ? 'absent'
+                    : 'pending'
+              ]
+            }
+          </small>
+        )}
       </button>
     );
   }
@@ -254,6 +269,14 @@ export function Calendar(props: ViewProps) {
               · {dateLabel(selected.created_at)}. Actualizado {dateLabel(selected.updated_at)} ·{' '}
               {clock(selected.updated_at)}. Versión {selected.version}.
             </small>
+            {admin && (
+              <Attendance
+                shift={selected}
+                record={data.attendance?.find((a) => a.shift_id === selected.id)}
+                demo={props.demo}
+                notify={props.notify}
+              />
+            )}
           </div>
           <div className="dialogfoot" style={{ flexWrap: 'wrap' }}>
             {admin && (
@@ -383,6 +406,7 @@ export function Calendar(props: ViewProps) {
             <Copy />
             Copiar semana
           </button>
+          <ExportAttendance date={date} demo={props.demo} notify={props.notify} />
           <button className="btn" onClick={() => edit({ kind: 'absence' })}>
             <Plus />
             Ausencia o día libre
