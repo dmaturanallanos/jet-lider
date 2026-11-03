@@ -2,7 +2,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { browserDb } from '@/lib/supabase/browser';
-export function useLiveUpdates(enabled: boolean) {
+export function useLiveUpdates(enabled: boolean, workspaceId: string) {
   const router = useRouter();
   useEffect(() => {
     if (!enabled) return;
@@ -13,12 +13,47 @@ export function useLiveUpdates(enabled: boolean) {
       timer = setTimeout(() => router.refresh(), 500);
     };
     const channel = db
-      .channel('operacion')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'shifts' }, refresh)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'worker_absences' }, refresh)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'tasks' }, refresh)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'logbook_entries' }, refresh)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'workers' }, refresh)
+      .channel(`operacion:${workspaceId}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'shifts', filter: `workspace_id=eq.${workspaceId}` },
+        refresh,
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'worker_absences',
+          filter: `workspace_id=eq.${workspaceId}`,
+        },
+        refresh,
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'tasks', filter: `workspace_id=eq.${workspaceId}` },
+        refresh,
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'logbook_entries',
+          filter: `workspace_id=eq.${workspaceId}`,
+        },
+        refresh,
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'workers',
+          filter: `workspace_id=eq.${workspaceId}`,
+        },
+        refresh,
+      )
       .subscribe();
     const auth = db.auth.onAuthStateChange((event) => {
       if (event === 'SIGNED_OUT') router.replace('/acceso');
@@ -30,5 +65,5 @@ export function useLiveUpdates(enabled: boolean) {
       void db.removeChannel(channel);
       auth.data.subscription.unsubscribe();
     };
-  }, [enabled, router]);
+  }, [enabled, workspaceId, router]);
 }

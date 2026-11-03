@@ -97,7 +97,9 @@ test('administradores muestra el alcance de permisos y exige confirmaciÃ³n explÃ
   page,
 }) => {
   await page.goto('/demo/configuracion');
-  await expect(page.getByRole('heading', { name: 'Administradores', exact: true })).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: 'Espacios independientes', exact: true }),
+  ).toBeVisible();
   await page.getByLabel('Nombre del nuevo administrador').fill('Administrador de prueba');
   await page.getByLabel('Correo de su cuenta').fill('test@example.test');
   const confirm = page.getByRole('checkbox', { name: /Confirmo que esta persona/ });

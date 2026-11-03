@@ -291,7 +291,7 @@ export async function mutate(action: string, input: unknown): Promise<ActionResu
       ok: true,
       message:
         action === 'administrator-add'
-          ? 'Permisos de administrador otorgados. La persona puede ingresar con su propia cuenta.'
+          ? 'Cuenta administradora habilitada en su propio espacio. Tus datos no se comparten.'
           : action === 'shift-delete'
             ? 'Turno eliminado. Se conservó el registro en el historial.'
             : action === 'invite'

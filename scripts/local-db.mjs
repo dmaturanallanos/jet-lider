@@ -1,7 +1,7 @@
 import { PGlite } from '@electric-sql/pglite';
 import { btree_gist } from '@electric-sql/pglite/contrib/btree_gist';
 import { readFile, readdir } from 'node:fs/promises';
-export async function createTestDatabase() {
+export async function createTestDatabase(through = '999999999999') {
   const db = new PGlite({ extensions: { btree_gist } });
   await db.exec(`create role anon; create role authenticated; create role service_role bypassrls;
  create schema auth; create table auth.users(id uuid primary key,email text unique,email_confirmed_at timestamptz default now(),banned_until timestamptz,deleted_at timestamptz);
@@ -14,7 +14,7 @@ export async function createTestDatabase() {
  grant usage on schema storage to authenticated; grant select,insert,delete on storage.objects to authenticated;
  create publication supabase_realtime;`);
   for (const file of (await readdir(new URL('../supabase/migrations/', import.meta.url)))
-    .filter((f) => f.endsWith('.sql'))
+    .filter((f) => f.endsWith('.sql') && f.split('_')[0] <= through)
     .sort())
     await db.exec(
       await readFile(new URL('../supabase/migrations/' + file, import.meta.url), 'utf8'),

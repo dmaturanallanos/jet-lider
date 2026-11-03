@@ -10,6 +10,7 @@ export type Database = {
           created_at: string;
           updated_at: string;
           version: number;
+          workspace_id: string;
         };
         Insert: {
           id: string;
@@ -17,6 +18,7 @@ export type Database = {
           created_at?: string;
           updated_at?: string;
           version?: number;
+          workspace_id?: string;
         };
         Update: {
           id?: string;
@@ -24,6 +26,7 @@ export type Database = {
           created_at?: string;
           updated_at?: string;
           version?: number;
+          workspace_id?: string;
         };
         Relationships: [];
       };
@@ -37,6 +40,7 @@ export type Database = {
           before_data: Json | null;
           after_data: Json | null;
           created_at: string;
+          workspace_id: string;
         };
         Insert: {
           id?: string;
@@ -47,6 +51,7 @@ export type Database = {
           before_data?: Json | null;
           after_data?: Json | null;
           created_at?: string;
+          workspace_id?: string;
         };
         Update: {
           id?: string;
@@ -57,6 +62,7 @@ export type Database = {
           before_data?: Json | null;
           after_data?: Json | null;
           created_at?: string;
+          workspace_id?: string;
         };
         Relationships: [];
       };
@@ -69,6 +75,7 @@ export type Database = {
           created_at: string;
           updated_at: string;
           version: number;
+          workspace_id: string;
         };
         Insert: {
           id?: string;
@@ -78,6 +85,7 @@ export type Database = {
           created_at?: string;
           updated_at?: string;
           version?: number;
+          workspace_id?: string;
         };
         Update: {
           id?: string;
@@ -87,6 +95,7 @@ export type Database = {
           created_at?: string;
           updated_at?: string;
           version?: number;
+          workspace_id?: string;
         };
         Relationships: [];
       };
@@ -107,6 +116,7 @@ export type Database = {
           created_at: string;
           updated_at: string;
           version: number;
+          workspace_id: string;
         };
         Insert: {
           id?: string;
@@ -124,6 +134,7 @@ export type Database = {
           created_at?: string;
           updated_at?: string;
           version?: number;
+          workspace_id?: string;
         };
         Update: {
           id?: string;
@@ -141,13 +152,14 @@ export type Database = {
           created_at?: string;
           updated_at?: string;
           version?: number;
+          workspace_id?: string;
         };
         Relationships: [];
       };
       operation_requests: {
-        Row: { id: string; actor_id: string; created_at: string };
-        Insert: { id: string; actor_id?: string; created_at?: string };
-        Update: { id?: string; actor_id?: string; created_at?: string };
+        Row: { id: string; actor_id: string; created_at: string; workspace_id: string };
+        Insert: { id: string; actor_id?: string; created_at?: string; workspace_id?: string };
+        Update: { id?: string; actor_id?: string; created_at?: string; workspace_id?: string };
         Relationships: [];
       };
       profiles: {
@@ -159,6 +171,7 @@ export type Database = {
           created_at: string;
           updated_at: string;
           version: number;
+          workspace_id: string;
         };
         Insert: {
           id: string;
@@ -168,6 +181,7 @@ export type Database = {
           created_at?: string;
           updated_at?: string;
           version?: number;
+          workspace_id?: string;
         };
         Update: {
           id?: string;
@@ -177,6 +191,7 @@ export type Database = {
           created_at?: string;
           updated_at?: string;
           version?: number;
+          workspace_id?: string;
         };
         Relationships: [];
       };
@@ -188,6 +203,7 @@ export type Database = {
           created_at: string;
           updated_at: string;
           version: number;
+          workspace_id: string;
         };
         Insert: {
           id?: string;
@@ -196,6 +212,7 @@ export type Database = {
           created_at?: string;
           updated_at?: string;
           version?: number;
+          workspace_id?: string;
         };
         Update: {
           id?: string;
@@ -204,6 +221,7 @@ export type Database = {
           created_at?: string;
           updated_at?: string;
           version?: number;
+          workspace_id?: string;
         };
         Relationships: [];
       };
@@ -215,6 +233,7 @@ export type Database = {
           created_at: string;
           updated_at: string;
           version: number;
+          workspace_id: string;
         };
         Insert: {
           id?: string;
@@ -223,6 +242,7 @@ export type Database = {
           created_at?: string;
           updated_at?: string;
           version?: number;
+          workspace_id?: string;
         };
         Update: {
           id?: string;
@@ -231,6 +251,7 @@ export type Database = {
           created_at?: string;
           updated_at?: string;
           version?: number;
+          workspace_id?: string;
         };
         Relationships: [];
       };
@@ -250,6 +271,7 @@ export type Database = {
           created_at: string;
           updated_at: string;
           version: number;
+          workspace_id: string;
         };
         Insert: {
           id?: string;
@@ -266,6 +288,7 @@ export type Database = {
           created_at?: string;
           updated_at?: string;
           version?: number;
+          workspace_id?: string;
         };
         Update: {
           id?: string;
@@ -282,6 +305,7 @@ export type Database = {
           created_at?: string;
           updated_at?: string;
           version?: number;
+          workspace_id?: string;
         };
         Relationships: [];
       };
@@ -293,6 +317,7 @@ export type Database = {
           created_at: string;
           updated_at: string;
           version: number;
+          workspace_id: string;
         };
         Insert: {
           id?: string;
@@ -301,6 +326,7 @@ export type Database = {
           created_at?: string;
           updated_at?: string;
           version?: number;
+          workspace_id?: string;
         };
         Update: {
           id?: string;
@@ -309,6 +335,7 @@ export type Database = {
           created_at?: string;
           updated_at?: string;
           version?: number;
+          workspace_id?: string;
         };
         Relationships: [];
       };
@@ -321,6 +348,7 @@ export type Database = {
           created_at: string;
           updated_at: string;
           version: number;
+          workspace_id: string;
         };
         Insert: {
           id?: string;
@@ -330,6 +358,7 @@ export type Database = {
           created_at?: string;
           updated_at?: string;
           version?: number;
+          workspace_id?: string;
         };
         Update: {
           id?: string;
@@ -339,6 +368,7 @@ export type Database = {
           created_at?: string;
           updated_at?: string;
           version?: number;
+          workspace_id?: string;
         };
         Relationships: [];
       };
@@ -351,6 +381,7 @@ export type Database = {
           created_at: string;
           updated_at: string;
           version: number;
+          workspace_id: string;
         };
         Insert: {
           id?: string;
@@ -360,6 +391,7 @@ export type Database = {
           created_at?: string;
           updated_at?: string;
           version?: number;
+          workspace_id?: string;
         };
         Update: {
           id?: string;
@@ -369,6 +401,7 @@ export type Database = {
           created_at?: string;
           updated_at?: string;
           version?: number;
+          workspace_id?: string;
         };
         Relationships: [];
       };
@@ -387,6 +420,7 @@ export type Database = {
           created_at: string;
           updated_at: string;
           version: number;
+          workspace_id: string;
         };
         Insert: {
           id?: string;
@@ -402,6 +436,7 @@ export type Database = {
           created_at?: string;
           updated_at?: string;
           version?: number;
+          workspace_id?: string;
         };
         Update: {
           id?: string;
@@ -417,6 +452,7 @@ export type Database = {
           created_at?: string;
           updated_at?: string;
           version?: number;
+          workspace_id?: string;
         };
         Relationships: [];
       };
@@ -435,6 +471,7 @@ export type Database = {
           created_at: string;
           updated_at: string;
           version: number;
+          workspace_id: string;
         };
         Insert: {
           id?: string;
@@ -450,6 +487,7 @@ export type Database = {
           created_at?: string;
           updated_at?: string;
           version?: number;
+          workspace_id?: string;
         };
         Update: {
           id?: string;
@@ -465,6 +503,7 @@ export type Database = {
           created_at?: string;
           updated_at?: string;
           version?: number;
+          workspace_id?: string;
         };
         Relationships: [];
       };
@@ -478,6 +517,7 @@ export type Database = {
           created_at: string;
           updated_at: string;
           version: number;
+          workspace_id: string;
         };
         Insert: {
           id?: string;
@@ -488,6 +528,7 @@ export type Database = {
           created_at?: string;
           updated_at?: string;
           version?: number;
+          workspace_id?: string;
         };
         Update: {
           id?: string;
@@ -498,6 +539,7 @@ export type Database = {
           created_at?: string;
           updated_at?: string;
           version?: number;
+          workspace_id?: string;
         };
         Relationships: [];
       };
@@ -510,6 +552,7 @@ export type Database = {
           created_at: string;
           updated_at: string;
           version: number;
+          workspace_id: string;
         };
         Insert: {
           id: string;
@@ -519,6 +562,7 @@ export type Database = {
           created_at?: string;
           updated_at?: string;
           version?: number;
+          workspace_id?: string;
         };
         Update: {
           id?: string;
@@ -528,6 +572,7 @@ export type Database = {
           created_at?: string;
           updated_at?: string;
           version?: number;
+          workspace_id?: string;
         };
         Relationships: [];
       };
@@ -544,6 +589,7 @@ export type Database = {
           created_at: string;
           updated_at: string;
           version: number;
+          workspace_id: string;
         };
         Insert: {
           id?: string;
@@ -557,6 +603,7 @@ export type Database = {
           created_at?: string;
           updated_at?: string;
           version?: number;
+          workspace_id?: string;
         };
         Update: {
           id?: string;
@@ -570,44 +617,52 @@ export type Database = {
           created_at?: string;
           updated_at?: string;
           version?: number;
+          workspace_id?: string;
         };
+        Relationships: [];
+      };
+      workspaces: {
+        Row: { id: string; owner_id: string | null; name: string; created_at: string };
+        Insert: { id: string; owner_id?: string | null; name: string; created_at?: string };
+        Update: { id?: string; owner_id?: string | null; name?: string; created_at?: string };
         Relationships: [];
       };
     };
     Views: { [_ in never]: never };
     Functions: {
-      save_absence: { Args: { payload: Json; private_note: string }; Returns: string };
-      my_contact: {
-        Args: Record<string, never>;
-        Returns: { email: string | null; phone: string | null }[];
-      };
-      is_active: { Args: Record<string, never>; Returns: boolean };
-      is_admin: { Args: Record<string, never>; Returns: boolean };
-      my_worker_id: { Args: Record<string, never>; Returns: string };
-      can_task: { Args: { target: string }; Returns: boolean };
       can_entry: { Args: { target: string }; Returns: boolean };
-      set_avatar: { Args: { target_worker: string; object_path: string }; Returns: undefined };
-      worker_impact: { Args: { target: string }; Returns: Json };
+      is_admin: { Args: Record<string, never>; Returns: boolean };
+      can_edit_entry: { Args: { target: string }; Returns: boolean };
+      is_active: { Args: Record<string, never>; Returns: boolean };
+      can_task: { Args: { target: string }; Returns: boolean };
       save_shift_batch: {
         Args: { request_id: string; items: Json; series_description?: string };
         Returns: number;
       };
+      team_authors: { Args: Record<string, never>; Returns: { user_id: string; name: string }[] };
+      my_contact: {
+        Args: Record<string, never>;
+        Returns: { email: string | null; phone: string | null }[];
+      };
+      set_avatar: { Args: { target_worker: string; object_path: string }; Returns: undefined };
+      current_workspace: { Args: Record<string, never>; Returns: string };
+      my_worker_id: { Args: Record<string, never>; Returns: string };
       save_task: {
         Args: { payload: Json; assignees: string[]; expected_version?: number };
         Returns: string;
       };
       invitee_account: { Args: { target_worker: string }; Returns: string };
-      dashboard_summary: { Args: { day: string; week_start: string }; Returns: Json };
-      can_edit_entry: { Args: { target: string }; Returns: boolean };
-      team_authors: { Args: Record<string, never>; Returns: { user_id: string; name: string }[] };
-      save_worker: {
-        Args: { payload: Json; private_data: Json; expected_version?: number };
-        Returns: string;
-      };
       grant_administrator: {
         Args: { account_email: string; administrator_name: string };
         Returns: string;
       };
+      save_absence: { Args: { payload: Json; private_note: string }; Returns: string };
+      save_worker: {
+        Args: { payload: Json; private_data: Json; expected_version?: number };
+        Returns: string;
+      };
+      dashboard_summary: { Args: { day: string; week_start: string }; Returns: Json };
+      worker_impact: { Args: { target: string }; Returns: Json };
     };
     Enums: { [_ in never]: never };
     CompositeTypes: { [_ in never]: never };

@@ -56,14 +56,18 @@ beforeAll(async () => {
     u2,
     'two@example.test',
   ]);
+  await db.query("insert into profiles(id,role,display_name) values($1,'admin','Admin')", [admin]);
+  await asUser(admin);
   await db.query(
     "insert into workers(id,full_name) values($1,'Trabajador uno'),($2,'Trabajador dos'),($3,'Sin cuenta')",
     [w1, w2, w3],
   );
+  await asUser(null, 'service_role');
   await db.query(
-    "insert into profiles(id,role,display_name,worker_id) values($1,'admin','Admin',null),($2,'worker','Uno',$3),($4,'worker','Dos',$5)",
-    [admin, u1, w1, u2, w2],
+    "insert into profiles(id,role,display_name,worker_id) values($1,'worker','Uno',$2),($3,'worker','Dos',$4)",
+    [u1, w1, u2, w2],
   );
+  await asUser(admin);
   await db.query(
     "insert into worker_private_details(id,email,phone,notes) values($1,'one@example.test','privado','nota privada')",
     [w1],
@@ -273,30 +277,16 @@ describe('Integración SQL real en PostgreSQL embebido (sin servicios Supabase)'
     );
     await denied('select invitee_account($1)', [w1], /permission denied/);
   });
-  it('un administrador puede promover otra cuenta sin duplicar perfiles ni perder el vínculo laboral', async () => {
-    await db.query("select grant_administrator('TWO@example.test','Segundo admin')");
-    await db.query("select grant_administrator('two@example.test','Segundo admin')");
-    const result = await db.query<{ id: string; worker_id: string }>(
-      "select id,worker_id from profiles where role='admin'",
+  it('no mueve a un trabajador existente a otro espacio al otorgar un rol', async () => {
+    await denied(
+      "select grant_administrator('two@example.test','Segundo admin')",
+      [],
+      /ya pertenece/,
     );
-    expect(result.rows).toHaveLength(2);
-    expect(result.rows.find((p) => p.id === u2)?.worker_id).toBe(w2);
-    const audit = await db.query<{
-      before_data: { role: string };
-      after_data: { role: string };
-      actor_id: string;
-    }>(
-      "select before_data,after_data,actor_id from activity_logs where entity='profiles' and entity_id=$1 and action='UPDATE'",
-      [u2],
-    );
-    expect(audit.rows).toHaveLength(1);
-    expect(audit.rows[0]).toMatchObject({
-      before_data: { role: 'worker' },
-      after_data: { role: 'admin' },
-      actor_id: admin,
-    });
-    await asUser(u2);
-    expect((await db.query<{ yes: boolean }>('select is_admin() as yes')).rows[0].yes).toBe(true);
+    expect(
+      (await db.query<{ role: string }>('select role from profiles where id=$1', [u2])).rows[0]
+        .role,
+    ).toBe('worker');
   });
   it('puede dar permisos a una cuenta confirmada sin perfil ni crear un trabajador ficticio', async () => {
     const user = '00000000-0000-4000-8000-000000000777';
@@ -304,6 +294,8 @@ describe('Integración SQL real en PostgreSQL embebido (sin servicios Supabase)'
     await db.query("insert into auth.users(id,email) values($1,'new-admin@example.test')", [user]);
     await asUser(admin);
     await db.query("select grant_administrator('new-admin@example.test','Nuevo administrador')");
+    await db.query("select grant_administrator('new-admin@example.test','Nuevo administrador')");
+    await asUser(user);
     const result = await db.query<{ role: string; worker_id: string | null; display_name: string }>(
       'select role,worker_id,display_name from profiles where id=$1',
       [user],
@@ -314,18 +306,18 @@ describe('Integración SQL real en PostgreSQL embebido (sin servicios Supabase)'
       display_name: 'Nuevo administrador',
     });
   });
-  it('reenviar una invitación a un trabajador promovido no altera su rol', async () => {
+  it('reenviar una invitación a un trabajador conserva su espacio y rol', async () => {
     await db.query(
       "insert into worker_invitations(worker_id,email) values($1,'two@example.test')",
       [w2],
     );
-    await db.query("select grant_administrator('two@example.test','Dos')");
+
     await asUser(null, 'service_role');
     await db.query('select invitee_account($1)', [w2]);
     expect(
       (await db.query<{ role: string }>('select role from profiles where id=$1', [u2])).rows[0]
         .role,
-    ).toBe('admin');
+    ).toBe('worker');
   });
   it('nadie puede promoverse como trabajador, anónimo o con actualización directa de rol', async () => {
     await asUser(u1);
@@ -335,8 +327,12 @@ describe('Integración SQL real en PostgreSQL embebido (sin servicios Supabase)'
     await asUser(admin);
     await denied("update profiles set role='admin' where id=$1", [u2], /permission denied/);
   });
-  it('rechaza cuentas inexistentes, sin confirmar e inactivas y revoca acceso al desactivar un administrador vinculado', async () => {
-    await denied("select grant_administrator('missing@example.test','Ausente')", [], /no existe/);
+  it('rechaza cuentas inexistentes, no confirmadas y trabajadores ya vinculados', async () => {
+    await denied(
+      "select grant_administrator('missing@example.test','Ausente')",
+      [],
+      /Crea primero/,
+    );
     await asUser(null, 'service_role');
     await db.query('update auth.users set email_confirmed_at=null where id=$1', [u2]);
     await asUser(admin);
@@ -345,13 +341,7 @@ describe('Integración SQL real en PostgreSQL embebido (sin servicios Supabase)'
     await db.query('update auth.users set email_confirmed_at=now() where id=$1', [u2]);
     await asUser(admin);
     await db.query('update workers set active=false where id=$1', [w2]);
-    await denied("select grant_administrator('two@example.test','Dos')", [], /Activa primero/);
-    await db.query('update workers set active=true where id=$1', [w2]);
-    await db.query("select grant_administrator('two@example.test','Dos')");
-    await db.query('update workers set active=false where id=$1', [w2]);
-    await asUser(u2);
-    expect((await db.query('select * from shifts')).rows).toHaveLength(0);
-    expect((await db.query<{ yes: boolean }>('select is_admin() as yes')).rows[0].yes).toBe(false);
+    await denied("select grant_administrator('two@example.test','Dos')", [], /ya pertenece/);
   });
   it('el perfil laboral sin cuenta puede recibir turnos y tareas', async () => {
     await shift(w3);

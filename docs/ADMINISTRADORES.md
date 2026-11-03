@@ -1,5 +1,7 @@
 # Varios administradores
 
+> Documento histórico de la primera incorporación de administradores compartidos. La migración 202611030012 reemplaza ese comportamiento por espacios separados: consulta [Espacios privados](ESPACIOS_PRIVADOS.md). Ya no se promueven trabajadores existentes a un espacio independiente ni se comparten datos entre administradores.
+
 Cambio solicitado por el propietario: permitir agregar administradores desde Configuración, manteniendo la autenticación por invitación y los controles del servidor.
 
 ## Aplicar en Supabase

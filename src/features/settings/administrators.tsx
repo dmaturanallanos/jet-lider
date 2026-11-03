@@ -15,7 +15,7 @@ export function Administrators({
   return (
     <section className="panel">
       <div className="panelhead">
-        <h2>Administradores</h2>
+        <h2>Espacios independientes</h2>
       </div>
       <div className="panelbody stack">
         {(data.administrators ?? [data.profile]).map((p) => (
@@ -25,12 +25,13 @@ export function Administrators({
           </p>
         ))}
         <p className="muted">
-          Los administradores pueden gestionar todo el equipo, los turnos, las tareas y los datos
-          privados. Otorga acceso solo a personas de confianza.
+          Este es tu espacio privado. Cada administrador tiene su propio equipo, turnos, tareas y
+          bitácora. Los datos no se comparten entre administradores.
         </p>
         <p className="muted">
-          La cuenta debe existir y tener el correo confirmado. Si aún no tiene acceso, regístrala e
-          invítala desde Equipo; después podrás promoverla aquí.
+          Para habilitar otro espacio, crea una cuenta con correo confirmado en Supabase Auth. Debe
+          ser una cuenta independiente: las invitaciones de Equipo corresponden a trabajadores de tu
+          propio espacio.
         </p>
         <form
           className="stack"
@@ -67,7 +68,7 @@ export function Administrators({
           </label>
           <label className="checklabel">
             <input name="confirmed" type="checkbox" required />
-            Confirmo que esta persona tendrá acceso completo de administrador.
+            Confirmo que esta persona tendrá un espacio independiente, sin acceso a mis datos.
           </label>
           <button className="btn primary" disabled={busy}>
             {busy ? 'Otorgando acceso…' : 'Agregar administrador'}

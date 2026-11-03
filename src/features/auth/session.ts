@@ -21,6 +21,8 @@ export const requireSession = cache(async function requireSession() {
   const { data: active } = await db.rpc('is_active');
   if (!profile || !active)
     redirect('/acceso?error=Acceso%20no%20habilitado.%20Contacta%20al%20administrador.');
+  if (!profile.workspace_id)
+    redirect('/acceso?error=Falta%20actualizar%20los%20espacios%20privados%20en%20Supabase.');
   return { db, user, profile };
 });
 export async function requireAdmin() {

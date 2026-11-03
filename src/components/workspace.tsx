@@ -71,7 +71,7 @@ export function Workspace({
   const [editor, setEditor] = useState<Editor | null>(null);
   const [message, setMessage] = useState('');
   const admin = canManage(data.profile.role);
-  useLiveUpdates(!demo);
+  useLiveUpdates(!demo, data.profile.workspace_id);
   function notify(s: string) {
     setMessage(s);
   }
@@ -139,7 +139,7 @@ export function Workspace({
             <div>
               <strong style={{ fontSize: 12 }}>{data.profile.display_name}</strong>
               <div className="muted" style={{ fontSize: 10 }}>
-                {admin ? 'Administrador' : 'Trabajador'}
+                {admin ? 'Administrador · espacio privado' : 'Trabajador · equipo asignado'}
               </div>
             </div>
           </Link>

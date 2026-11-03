@@ -2,7 +2,7 @@
 
 Aplicación interna en español para coordinar turnos, trabajadores, tareas y entregas de turno. Next.js App Router, React, TypeScript estricto, Tailwind y Supabase. Los componentes propios usan controles HTML accesibles, navegación por teclado y diálogos nativos.
 
-**Estado actual:** código implementado y verificado localmente. Después de la entrega inicial se configuraron las credenciales, se verificó la conexión real con Supabase y se creó el único administrador mediante el bootstrap seguro, vinculado a la cuenta verificada indicada por el propietario. El proyecto ya contiene las tablas y buckets; falta comprobar el historial de migraciones y bloquear el registro público. No se ejecutaron migraciones remotas, envíos de correo, pruebas de Realtime o cargas reales de archivos. No se publicó la aplicación. Consulta [el estado de Supabase](docs/SUPABASE_ESTADO.md).
+**Estado actual:** aplicación conectada a Supabase y publicada en Vercel. Cada administrador dispone de un espacio privado con sus propios trabajadores, turnos, tareas, bitácora y archivos. La separación se aplica mediante RLS, relaciones de base de datos y permisos de Storage; no depende de filtros visuales. Consulta [la migración y verificaciones de espacios privados](docs/ESPACIOS_PRIVADOS.md). El historial remoto de la CLI y la configuración de Auth/SMTP requieren la revisión indicada en la documentación; las pruebas locales no equivalen a pruebas completas de los servicios remotos.
 
 ## Inicio rápido
 
@@ -109,12 +109,12 @@ No existe contraseña predeterminada ni registro público en la interfaz. La mig
 
 ### Agregar más administradores
 
-1. Aplica la migración `supabase/migrations/202611020011_multiple_administrators.sql` antes de usar esta función. No resetees la base de datos. Consulta el procedimiento y estado pendiente en [Administradores](docs/ADMINISTRADORES.md).
-2. Si la persona aún no tiene cuenta, regístrala en Equipo, agrega su correo e invítala. Debe activar el acceso y confirmar su correo. Una cuenta confirmada creada por el propietario en Supabase Auth también puede recibir permisos sin crear un perfil laboral ficticio.
-3. En Configuración → Administradores, escribe su nombre y el correo exacto de su cuenta, confirma el acceso completo y pulsa Agregar administrador.
-4. La persona ingresa con su propia cuenta. Los permisos se comprueban en cada solicitud; no necesita una contraseña compartida. Si ya era trabajador, conserva su perfil, turnos y tareas. Repetir la promoción no duplica perfiles ni auditoría.
+1. Aplica las migraciones en orden hasta `supabase/migrations/202611030012_private_workspaces.sql`. No resetees la base de datos. Consulta [Espacios privados](docs/ESPACIOS_PRIVADOS.md).
+2. Crea la cuenta independiente desde Supabase Auth con correo confirmado. La cuenta no debe estar vinculada como trabajador de otro equipo. Invitar desde Equipo crea un trabajador de tu propio espacio, no un administrador independiente.
+3. En Configuración → Espacios independientes, escribe el nombre y el correo exacto, confirma que tendrá un espacio separado y pulsa Agregar administrador.
+4. La persona ingresa con su propia cuenta y comienza sin datos operativos. Solo recibe los cuatro tipos de turno iniciales. No puede ver los datos de quien la habilitó ni los de otros administradores. Repetir la solicitud no duplica espacios, cuentas ni registros.
 
-La interfaz permite agregar administradores; la revocación de este rol requiere por ahora una intervención controlada en Supabase. No se incluye un botón para quitarse permisos ni para borrar administradores. Al desactivar un trabajador vinculado a una cuenta administradora se bloquea también su acceso operativo; conserva al menos un administrador activo sin vínculo laboral para evitar perder acceso.
+La interfaz permite habilitar administradores independientes; revocar una cuenta o trasladar un trabajador entre espacios requiere una intervención controlada del propietario de Supabase. Un correo solo pertenece a un espacio; no se implementan membresías múltiples ni cambio de espacio en la interfaz. Cada trabajador consulta únicamente el equipo del administrador que lo registró y sus propias tareas autorizadas.
 
 ### Invitar a un trabajador
 

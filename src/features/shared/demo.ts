@@ -5,7 +5,7 @@ const uuid = (n: number) => `00000000-0000-4000-8000-${String(n).padStart(12, '0
 export function demoData(date = today()): WorkspaceData {
   const week = monday(date),
     stamp = dayRange(week).start,
-    base = { created_at: stamp, updated_at: stamp, version: 1 };
+    base = { created_at: stamp, updated_at: stamp, version: 1, workspace_id: uuid(100) };
   const names = [
     'Camila Rojas',
     'Matías González',
