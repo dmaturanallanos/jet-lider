@@ -35,7 +35,7 @@ for (const name of [...new Set(columns.rows.map((c) => c.table_name))]) {
 }
 source += '}; Views: { [_ in never]: never }; Functions: {\n';
 const functions = await db.query(
-  `select p.proname, p.proargnames, p.proargtypes::oid[] as argtypes, p.pronargdefaults, t.typname as returns from pg_proc p join pg_namespace n on n.oid=p.pronamespace join pg_type t on t.oid=p.prorettype where n.nspname='public' and p.proname in ('is_active','is_admin','my_worker_id','can_task','can_entry','my_contact','save_worker','save_shift_batch','save_task','save_absence','invitee_account','set_avatar','worker_impact','dashboard_summary','can_edit_entry','team_authors')`,
+  `select p.proname, p.proargnames, p.proargtypes::oid[] as argtypes, p.pronargdefaults, t.typname as returns from pg_proc p join pg_namespace n on n.oid=p.pronamespace join pg_type t on t.oid=p.prorettype where n.nspname='public' and p.proname in ('is_active','is_admin','my_worker_id','can_task','can_entry','my_contact','save_worker','save_shift_batch','save_task','save_absence','invitee_account','set_avatar','worker_impact','dashboard_summary','can_edit_entry','team_authors','grant_administrator')`,
 );
 for (const f of functions.rows) {
   const args = [];

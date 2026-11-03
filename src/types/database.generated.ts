@@ -604,6 +604,10 @@ export type Database = {
         Args: { payload: Json; private_data: Json; expected_version?: number };
         Returns: string;
       };
+      grant_administrator: {
+        Args: { account_email: string; administrator_name: string };
+        Returns: string;
+      };
     };
     Enums: { [_ in never]: never };
     CompositeTypes: { [_ in never]: never };

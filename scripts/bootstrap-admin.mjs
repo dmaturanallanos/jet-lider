@@ -16,7 +16,7 @@ const {
 } = await db.auth.admin.getUserById(id);
 if (error || !user?.email_confirmed_at)
   throw new Error('Crea y verifica primero tu propia cuenta desde Auth en Supabase.');
-const current = await db.from('profiles').select('id').eq('role', 'admin').maybeSingle();
+const current = await db.from('profiles').select('id').eq('role', 'admin').limit(1).maybeSingle();
 if (current.error) throw current.error;
 if (current.data) {
   if (current.data.id === id) {

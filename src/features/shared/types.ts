@@ -2,6 +2,7 @@ import type { Row } from '@/types/database';
 export type View =
   'inicio' | 'turnos' | 'tareas' | 'bitacora' | 'equipo' | 'perfil' | 'configuracion' | 'mas';
 export type WorkspaceData = {
+  administrators?: Row<'profiles'>[];
   now: string;
   authors: { user_id: string; name: string }[];
   summary?: {

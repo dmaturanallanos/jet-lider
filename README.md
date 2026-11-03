@@ -59,7 +59,7 @@ Usa las claves de la plataforma local en `.env.local`. `supabase/config.toml` de
 | `SUPABASE_SERVICE_ROLE_KEY` | Solo servidor: invitaciones, bootstrap y mantenimiento |
 | `NEXT_PUBLIC_APP_URL` | Origen exacto de la aplicación; sin barra final, por ejemplo `http://localhost:3000` |
 | `BOOTSTRAP_ADMIN_USER_ID` | UUID de tu propia cuenta ya verificada; solo bootstrap |
-| `BOOTSTRAP_ADMIN_NAME` | Nombre de presentación del único administrador |
+| `BOOTSTRAP_ADMIN_NAME` | Nombre de presentación del administrador inicial |
 
 Las variables públicas se incorporan al build; después de cambiarlas reconstruye la aplicación. Los archivos `.env*` están ignorados, excepto el ejemplo sin secretos.
 
@@ -102,10 +102,19 @@ La ruta también admite el intercambio PKCE mediante `code`, sin aceptar destino
 npm run bootstrap
 ```
 
-3. El script verifica la cuenta con Auth, exige correo confirmado y rechaza otro administrador existente. El índice parcial `only_one_admin` protege también frente a solicitudes simultáneas.
+3. El script verifica la cuenta con Auth, exige correo confirmado y se reserva para la configuración inicial: rechaza crear un administrador adicional cuando ya existe uno.
 4. Elimina las variables `BOOTSTRAP_*` cuando termines. La clave privilegiada del servidor sigue siendo necesaria para las invitaciones.
 
-No existe contraseña predeterminada, registro público ni endpoint para obtener privilegios. Ninguna operación normal de la aplicación puede crear o promover a un segundo administrador. Una recuperación extraordinaria requiere intervención explícita del propietario de Supabase.
+No existe contraseña predeterminada ni registro público en la interfaz. La migración `202611020011_multiple_administrators.sql`, solicitada por el propietario, sustituye la restricción de un solo administrador. Solo un administrador autenticado puede otorgar permisos adicionales; un trabajador no puede promoverse ni modificar roles mediante solicitudes directas.
+
+### Agregar más administradores
+
+1. Aplica la migración `supabase/migrations/202611020011_multiple_administrators.sql` antes de usar esta función. No resetees la base de datos. Consulta el procedimiento y estado pendiente en [Administradores](docs/ADMINISTRADORES.md).
+2. Si la persona aún no tiene cuenta, regístrala en Equipo, agrega su correo e invítala. Debe activar el acceso y confirmar su correo. Una cuenta confirmada creada por el propietario en Supabase Auth también puede recibir permisos sin crear un perfil laboral ficticio.
+3. En Configuración → Administradores, escribe su nombre y el correo exacto de su cuenta, confirma el acceso completo y pulsa Agregar administrador.
+4. La persona ingresa con su propia cuenta. Los permisos se comprueban en cada solicitud; no necesita una contraseña compartida. Si ya era trabajador, conserva su perfil, turnos y tareas. Repetir la promoción no duplica perfiles ni auditoría.
+
+La interfaz permite agregar administradores; la revocación de este rol requiere por ahora una intervención controlada en Supabase. No se incluye un botón para quitarse permisos ni para borrar administradores. Al desactivar un trabajador vinculado a una cuenta administradora se bloquea también su acceso operativo; conserva al menos un administrador activo sin vínculo laboral para evitar perder acceso.
 
 ### Invitar a un trabajador
 

@@ -273,9 +273,85 @@ describe('Integración SQL real en PostgreSQL embebido (sin servicios Supabase)'
     );
     await denied('select invitee_account($1)', [w1], /permission denied/);
   });
-  it('solo admite un administrador incluso mediante cuenta privilegiada', async () => {
+  it('un administrador puede promover otra cuenta sin duplicar perfiles ni perder el vínculo laboral', async () => {
+    await db.query("select grant_administrator('TWO@example.test','Segundo admin')");
+    await db.query("select grant_administrator('two@example.test','Segundo admin')");
+    const result = await db.query<{ id: string; worker_id: string }>(
+      "select id,worker_id from profiles where role='admin'",
+    );
+    expect(result.rows).toHaveLength(2);
+    expect(result.rows.find((p) => p.id === u2)?.worker_id).toBe(w2);
+    const audit = await db.query<{
+      before_data: { role: string };
+      after_data: { role: string };
+      actor_id: string;
+    }>(
+      "select before_data,after_data,actor_id from activity_logs where entity='profiles' and entity_id=$1 and action='UPDATE'",
+      [u2],
+    );
+    expect(audit.rows).toHaveLength(1);
+    expect(audit.rows[0]).toMatchObject({
+      before_data: { role: 'worker' },
+      after_data: { role: 'admin' },
+      actor_id: admin,
+    });
+    await asUser(u2);
+    expect((await db.query<{ yes: boolean }>('select is_admin() as yes')).rows[0].yes).toBe(true);
+  });
+  it('puede dar permisos a una cuenta confirmada sin perfil ni crear un trabajador ficticio', async () => {
+    const user = '00000000-0000-4000-8000-000000000777';
     await asUser(null, 'service_role');
-    await denied("update profiles set role='admin' where id=$1", [u2], /only_one_admin/);
+    await db.query("insert into auth.users(id,email) values($1,'new-admin@example.test')", [user]);
+    await asUser(admin);
+    await db.query("select grant_administrator('new-admin@example.test','Nuevo administrador')");
+    const result = await db.query<{ role: string; worker_id: string | null; display_name: string }>(
+      'select role,worker_id,display_name from profiles where id=$1',
+      [user],
+    );
+    expect(result.rows[0]).toEqual({
+      role: 'admin',
+      worker_id: null,
+      display_name: 'Nuevo administrador',
+    });
+  });
+  it('reenviar una invitación a un trabajador promovido no altera su rol', async () => {
+    await db.query(
+      "insert into worker_invitations(worker_id,email) values($1,'two@example.test')",
+      [w2],
+    );
+    await db.query("select grant_administrator('two@example.test','Dos')");
+    await asUser(null, 'service_role');
+    await db.query('select invitee_account($1)', [w2]);
+    expect(
+      (await db.query<{ role: string }>('select role from profiles where id=$1', [u2])).rows[0]
+        .role,
+    ).toBe('admin');
+  });
+  it('nadie puede promoverse como trabajador, anónimo o con actualización directa de rol', async () => {
+    await asUser(u1);
+    await denied("select grant_administrator('one@example.test','Uno')", [], /FORBIDDEN/);
+    await asUser(null, 'anon');
+    await denied("select grant_administrator('one@example.test','Uno')", [], /permission denied/);
+    await asUser(admin);
+    await denied("update profiles set role='admin' where id=$1", [u2], /permission denied/);
+  });
+  it('rechaza cuentas inexistentes, sin confirmar e inactivas y revoca acceso al desactivar un administrador vinculado', async () => {
+    await denied("select grant_administrator('missing@example.test','Ausente')", [], /no existe/);
+    await asUser(null, 'service_role');
+    await db.query('update auth.users set email_confirmed_at=null where id=$1', [u2]);
+    await asUser(admin);
+    await denied("select grant_administrator('two@example.test','Dos')", [], /confirmada/);
+    await asUser(null, 'service_role');
+    await db.query('update auth.users set email_confirmed_at=now() where id=$1', [u2]);
+    await asUser(admin);
+    await db.query('update workers set active=false where id=$1', [w2]);
+    await denied("select grant_administrator('two@example.test','Dos')", [], /Activa primero/);
+    await db.query('update workers set active=true where id=$1', [w2]);
+    await db.query("select grant_administrator('two@example.test','Dos')");
+    await db.query('update workers set active=false where id=$1', [w2]);
+    await asUser(u2);
+    expect((await db.query('select * from shifts')).rows).toHaveLength(0);
+    expect((await db.query<{ yes: boolean }>('select is_admin() as yes')).rows[0].yes).toBe(false);
   });
   it('el perfil laboral sin cuenta puede recibir turnos y tareas', async () => {
     await shift(w3);

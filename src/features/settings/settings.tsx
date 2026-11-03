@@ -5,6 +5,7 @@ import type { ViewProps } from '@/features/shared/view-props';
 import { InstallApplication } from '@/components/pwa';
 import { safeMutate as mutate } from '@/features/shared/client-mutation';
 import { UploadImage, PrivateImage } from '@/features/shared/files';
+import { Administrators } from './administrators';
 export function Settings({ data, view, demo, notify }: ViewProps) {
   const { theme, setTheme } = useTheme();
   const router = useRouter();
@@ -112,6 +113,9 @@ export function Settings({ data, view, demo, notify }: ViewProps) {
       </div>
       <div className="stack">
         <InstallApplication />
+        {data.profile.role === 'admin' && view === 'configuracion' && (
+          <Administrators data={data} demo={demo} notify={notify} />
+        )}
         {data.profile.role === 'admin' && view === 'configuracion' && (
           <section className="panel">
             <div className="panelhead">

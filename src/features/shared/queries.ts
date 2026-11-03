@@ -240,7 +240,13 @@ export async function getWorkspace(
       : { data: [], error: null };
   for (const r of [assignees, comments, taskFiles, entryFiles, history])
     if (r.error) throw new Error('No se pudo cargar el detalle.');
+  const administrators =
+    admin && view === 'configuracion'
+      ? await db.from('profiles').select('*').eq('role', 'admin').order('created_at').limit(100)
+      : { data: [], error: null };
+  if (administrators.error) throw new Error('No se pudieron cargar los administradores.');
   return {
+    administrators: administrators.data ?? [],
     authors: authors.data ?? [],
     summary: counts.success ? counts.data : undefined,
     upcoming: upcoming.data ?? [],

@@ -45,6 +45,26 @@ export async function mutate(action: string, input: unknown): Promise<ActionResu
   try {
     const { db, user, profile } = await requireSession();
     switch (action) {
+      case 'administrator-add': {
+        await requireAdmin();
+        const v = z
+          .object({
+            email: z.email().max(320),
+            name: z.string().trim().min(2).max(120),
+            confirmed: z.literal(true),
+          })
+          .parse(input);
+        const { error } = await db.rpc('grant_administrator', {
+          account_email: v.email.trim(),
+          administrator_name: v.name,
+        });
+        if (error?.code === 'PGRST202')
+          throw new Error(
+            'Falta aplicar la migración 202611020011 en Supabase. No se otorgaron permisos.',
+          );
+        check(error);
+        break;
+      }
       case 'worker': {
         await requireAdmin();
         const v = workerSchema.parse(input);
@@ -270,11 +290,13 @@ export async function mutate(action: string, input: unknown): Promise<ActionResu
     return {
       ok: true,
       message:
-        action === 'shift-delete'
-          ? 'Turno eliminado. Se conservó el registro en el historial.'
-          : action === 'invite'
-            ? 'Invitación procesada. Revisa el correo y el estado de acceso.'
-            : 'Cambios guardados correctamente.',
+        action === 'administrator-add'
+          ? 'Permisos de administrador otorgados. La persona puede ingresar con su propia cuenta.'
+          : action === 'shift-delete'
+            ? 'Turno eliminado. Se conservó el registro en el historial.'
+            : action === 'invite'
+              ? 'Invitación procesada. Revisa el correo y el estado de acceso.'
+              : 'Cambios guardados correctamente.',
     };
   } catch (error) {
     unstable_rethrow(error);

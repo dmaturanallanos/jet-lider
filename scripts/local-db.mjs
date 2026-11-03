@@ -4,7 +4,7 @@ import { readFile, readdir } from 'node:fs/promises';
 export async function createTestDatabase() {
   const db = new PGlite({ extensions: { btree_gist } });
   await db.exec(`create role anon; create role authenticated; create role service_role bypassrls;
- create schema auth; create table auth.users(id uuid primary key,email text unique);
+ create schema auth; create table auth.users(id uuid primary key,email text unique,email_confirmed_at timestamptz default now(),banned_until timestamptz,deleted_at timestamptz);
  create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid $$;
  create function auth.role() returns text language sql stable as $$ select coalesce(nullif(current_setting('request.jwt.claim.role',true),''),'service_role') $$;
  grant usage on schema auth to authenticated,anon,service_role; grant execute on all functions in schema auth to authenticated,anon,service_role;

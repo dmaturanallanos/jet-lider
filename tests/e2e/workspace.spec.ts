@@ -93,6 +93,21 @@ test('tareas con detalle accesible y tablero', async ({ page }) => {
   await page.getByRole('link', { name: 'Tablero', exact: true }).click();
   await expect(page.locator('.boardcol')).toHaveCount(4);
 });
+test('administradores muestra el alcance de permisos y exige confirmación explícita', async ({
+  page,
+}) => {
+  await page.goto('/demo/configuracion');
+  await expect(page.getByRole('heading', { name: 'Administradores', exact: true })).toBeVisible();
+  await page.getByLabel('Nombre del nuevo administrador').fill('Administrador de prueba');
+  await page.getByLabel('Correo de su cuenta').fill('test@example.test');
+  const confirm = page.getByRole('checkbox', { name: /Confirmo que esta persona/ });
+  await expect(confirm).not.toBeChecked();
+  await confirm.check();
+  await page.getByRole('button', { name: 'Agregar administrador', exact: true }).click();
+  await expect(
+    page.getByRole('status').filter({ hasText: 'Demostración de solo lectura.' }),
+  ).toBeVisible();
+});
 test('tema persiste y la PWA no almacena respuestas operativas', async ({ page, context }) => {
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
