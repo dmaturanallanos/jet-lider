@@ -133,21 +133,34 @@ test('pagos muestra tarifas líquidas, HE manuales y contratos sin guardar datos
     'https://www.sii.cl/destacados/boletas_honorarios/index.html',
   );
   await page.getByRole('button', { name: 'Preparar pago', exact: true }).first().click();
-  await expect(page.getByLabel('Horas extra completas')).toBeVisible();
+  await expect(page.getByLabel('Cantidad de horas extra')).toBeVisible();
+  await page.getByLabel('Cantidad de horas extra').fill('0');
+  await page.getByRole('button', { name: '+30 min', exact: true }).click();
+  await expect(page.getByLabel('Cantidad de horas extra')).toHaveValue('0:30');
   await page.getByRole('button', { name: 'Guardar preparación de pago', exact: true }).click();
   await expect(
     page.getByRole('status').filter({ hasText: 'Demostración de solo lectura.' }),
   ).toBeVisible();
   await page.getByRole('button', { name: 'Cerrar', exact: true }).click();
-  await page.getByRole('button', { name: 'Preparar pago', exact: true }).nth(1).click();
+  await page.getByRole('link', { name: 'Contratos · mensual', exact: true }).click();
   await expect(
-    page.getByLabel('Líquido de contrato informado (CLP, incluye sus HE)'),
+    page.getByRole('heading', { name: 'Contratos · sueldo mensual y anticipo' }),
   ).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(
+    true,
+  );
+  await page.getByRole('button', { name: 'Ingresar sueldo mensual', exact: true }).first().click();
+  await expect(page.getByLabel('Sueldo líquido total del mes (CLP, incluye HE)')).toBeVisible();
 });
 test('planilla de pagos rechaza descargas sin sesión', async ({ request }) => {
   const response = await request.get('/api/reports/payments?week=2026-11-02&issueDate=2026-11-03');
   expect(response.status()).toBe(401);
   expect(response.headers()['cache-control']).toContain('no-store');
+});
+test('planilla mensual exige sesión y usa respuesta privada', async ({ request }) => {
+  const r = await request.get('/api/reports/contracts?month=2026-11-01');
+  expect(r.status()).toBe(401);
+  expect(r.headers()['cache-control']).toContain('no-store');
 });
 test('tareas con detalle accesible y tablero', async ({ page }) => {
   await page.goto('/demo/tareas?date=2026-11-02');

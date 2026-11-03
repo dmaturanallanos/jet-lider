@@ -166,6 +166,21 @@ export function demoData(date = today()): WorkspaceData {
       })),
       as_of: dayRange(addDays(week, 7)).start,
     },
+    contractPayments: {
+      workers: workers
+        .filter((_, i) => i % 2 === 1)
+        .map((w) => ({ id: w.id, full_name: w.full_name, active: true })),
+      entries: workers
+        .filter((_, i) => i % 2 === 1)
+        .map((w) => ({
+          worker_id: w.id,
+          salary_net: 800000,
+          advance_net: 200000,
+          notes: 'Dato ficticio de demostración',
+          version: 1,
+        })),
+      as_of: stamp,
+    },
     invitations: [],
     shifts,
     shiftTypes,

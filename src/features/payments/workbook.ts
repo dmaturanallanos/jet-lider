@@ -1,7 +1,15 @@
 import ExcelJS from 'exceljs';
-import { paymentRows, type PaymentSource, DAY_NET, OVERTIME_NET, SII_SOURCE } from './calculations';
+import {
+  paymentRows,
+  onlyBoletas,
+  type PaymentSource,
+  DAY_NET,
+  OVERTIME_NET,
+  SII_SOURCE,
+} from './calculations';
 import { addDays, clock, dateLabel } from '@/utils/dates';
 export function paymentWorkbook(start: string, issueDate: string, source: PaymentSource) {
+  source = onlyBoletas(source);
   const rows = paymentRows(source, issueDate).filter((r) => r.included);
   const invalid = rows.filter((r) => r.errors.length);
   if (invalid.length)
@@ -41,7 +49,7 @@ export function paymentWorkbook(start: string, issueDate: string, source: Paymen
   }
   setup(
     summary,
-    'Jet · Preparación semanal de pagos',
+    'Jet · Boletas y gasto semanal',
     [
       'Ref.',
       'Trabajador',
@@ -157,7 +165,7 @@ export function paymentWorkbook(start: string, issueDate: string, source: Paymen
     }
     for (const text of [
       `Corte de datos: ${date(source.as_of)} ${clock(source.as_of)}. Días = fechas distintas con asistencia confirmada. HE ingresadas manualmente.`,
-      'Contratos: líquido manual informado; no es liquidación laboral. Boletas: receptor retiene. Bruto = líquido / (1 − tasa), redondeado a pesos.',
+      'Boletas semanales: receptor retiene. Bruto = líquido / (1 − tasa), redondeado a pesos. Los contratos se preparan en el informe mensual.',
       'El bruto y la retención total corresponden solo a boletas. Un líquido cero no requiere emitir boleta en esta preparación.',
       `Fuente tasa SII: ${SII_SOURCE}`,
       'Instantánea para revisión. No emite boletas ni ejecuta pagos. Los turnos futuros o en curso sin marca no generan días pagados.',

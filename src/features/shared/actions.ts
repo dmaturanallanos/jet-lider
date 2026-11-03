@@ -15,6 +15,7 @@ import {
 } from './validation';
 import type { Json } from '@/types/database';
 import { paymentInputSchema } from '@/features/payments/calculations';
+import { monthlyInputSchema } from '@/features/payments/monthly-calculations';
 export type ActionResult = { ok: boolean; message: string };
 function check(error: { message: string; code?: string } | null) {
   if (!error) return;
@@ -46,6 +47,20 @@ export async function mutate(action: string, input: unknown): Promise<ActionResu
   try {
     const { db, user, profile } = await requireSession();
     switch (action) {
+      case 'contract-month-save': {
+        await requireAdmin();
+        const { version, ...payload } = monthlyInputSchema.parse(input);
+        const { error } = await db.rpc('save_contract_month', {
+          payload,
+          expected_version: version,
+        });
+        if (error?.code === 'PGRST202')
+          throw new Error(
+            'Falta aplicar la migración 202611030015. No se guardó el sueldo mensual.',
+          );
+        check(error);
+        break;
+      }
       case 'payment-save': {
         await requireAdmin();
         const { version, ...payload } = paymentInputSchema.parse(input);

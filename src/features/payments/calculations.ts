@@ -27,6 +27,26 @@ export const paymentSourceSchema = z.object({
   as_of: z.string(),
 });
 export type PaymentSource = z.infer<typeof paymentSourceSchema>;
+export function onlyBoletas(source: PaymentSource): PaymentSource {
+  const workers = source.workers.filter((w) => w.employment_type !== 'contrato'),
+    ids = new Set(workers.map((w) => w.id));
+  return {
+    ...source,
+    workers,
+    entries: source.entries.filter((e) => ids.has(e.worker_id)),
+    shifts: source.shifts.filter((s) => s.worker_id !== null && ids.has(s.worker_id)),
+  };
+}
+export function weeklyTotals(source: PaymentSource, issueDate: string) {
+  const rows = paymentRows(onlyBoletas(source), issueDate).filter((r) => r.included),
+    ready = rows.filter((r) => !r.errors.length);
+  return {
+    net: ready.reduce((n, r) => n + r.net, 0),
+    withholding: ready.reduce((n, r) => n + (r.withholding ?? 0), 0),
+    gross: ready.reduce((n, r) => n + (r.gross ?? 0), 0),
+    pending: rows.length - ready.length,
+  };
+}
 export function retentionRate(issueDate: string) {
   if (!z.iso.date().safeParse(issueDate).success) throw new Error('Fecha de emisión inválida.');
   const rate = ({ 2025: 1450, 2026: 1525, 2027: 1600, 2028: 1700 } as Record<number, number>)[

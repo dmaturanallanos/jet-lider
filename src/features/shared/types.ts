@@ -1,5 +1,6 @@
 import type { Row } from '@/types/database';
 import type { PaymentSource } from '@/features/payments/calculations';
+import type { MonthlySource } from '@/features/payments/monthly-calculations';
 export type View =
   | 'inicio'
   | 'turnos'
@@ -11,6 +12,7 @@ export type View =
   | 'mas'
   | 'pagos';
 export type WorkspaceData = {
+  contractPayments?: MonthlySource;
   payments?: PaymentSource;
   attendance?: Row<'shift_attendance'>[];
   administrators?: Row<'profiles'>[];

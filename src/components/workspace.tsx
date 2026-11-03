@@ -30,7 +30,7 @@ import { Tasks } from '@/features/tasks/tasks';
 import { Logbook } from '@/features/logbook/logbook';
 import { Workers } from '@/features/workers/workers';
 import { Settings } from '@/features/settings/settings';
-import { Payments } from '@/features/payments/payments';
+import { Payments } from '@/features/payments/payments-page';
 import { signOut } from '@/features/auth/actions';
 import { PwaStatus, useOnline } from '@/components/pwa';
 import { useLiveUpdates } from '@/hooks/use-live-updates';
@@ -47,7 +47,7 @@ const navigation = [
 const titles: Record<View, [string, string]> = {
   pagos: [
     'Preparación de pagos',
-    'Días confirmados, horas extra manuales y montos para emitir boletas.',
+    'Boletas semanales, sueldos mensuales y anticipos de tu equipo.',
   ],
   inicio: ['Tu operación, al día', 'Turnos, pendientes y el contexto que necesita tu equipo.'],
   turnos: ['Calendario de turnos', 'Coordina la cobertura y planifica la semana de tu equipo.'],

@@ -25,6 +25,7 @@ const expected = [
   'workspaces',
   'shift_attendance',
   'payment_entries',
+  'contract_monthly_payments',
   'workers',
   'profiles',
   'worker_private_details',

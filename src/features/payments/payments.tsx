@@ -6,14 +6,23 @@ import { Modal, Badge, Empty } from '@/components/ui/primitives';
 import type { ViewProps } from '@/features/shared/view-props';
 import { safeMutate } from '@/features/shared/client-mutation';
 import { addDays, dateLabel, monday, today } from '@/utils/dates';
-import { DAY_NET, OVERTIME_NET, SII_SOURCE, paymentRows, type PaymentRow } from './calculations';
+import {
+  DAY_NET,
+  OVERTIME_NET,
+  SII_SOURCE,
+  paymentRows,
+  onlyBoletas,
+  weeklyTotals,
+  type PaymentRow,
+} from './calculations';
+import { OvertimeInput, parseOvertime } from './overtime-input';
 const money = (n: number) =>
   new Intl.NumberFormat('es-CL', {
     style: 'currency',
     currency: 'CLP',
     maximumFractionDigits: 0,
   }).format(n);
-export function Payments({ data, date, demo, notify, link }: ViewProps) {
+export function WeeklyPayments({ data, date, demo, notify, link }: ViewProps) {
   const start = monday(date),
     router = useRouter();
   const [issueDate, setIssueDate] = useState(today()),
@@ -22,12 +31,16 @@ export function Payments({ data, date, demo, notify, link }: ViewProps) {
     [message, setMessage] = useState('');
   const calculated = useMemo(() => {
     try {
-      return { rows: data.payments ? paymentRows(data.payments, issueDate) : [], error: '' };
+      return {
+        rows: data.payments ? paymentRows(onlyBoletas(data.payments), issueDate) : [],
+        error: '',
+      };
     } catch (e) {
       return { rows: [], error: e instanceof Error ? e.message : 'Fecha no válida' };
     }
   }, [data.payments, issueDate]);
   const rows = calculated.rows.filter((r) => r.worker.active || r.included);
+  const totals = data.payments && !calculated.error ? weeklyTotals(data.payments, issueDate) : null;
   async function download() {
     if (demo) {
       notify('Demostración. Los pagos reales se calculan solo con tus registros guardados.');
@@ -79,13 +92,32 @@ export function Payments({ data, date, demo, notify, link }: ViewProps) {
         </div>
       </div>
       <section className="panel panelbody stack">
+        <h2>Boletas · pago semanal</h2>
+        {totals && (
+          <>
+            <div className="row wrap">
+              <Badge>
+                {totals.pending ? 'Subtotal bruto revisado' : 'Gasto bruto de boletas'}:{' '}
+                {money(totals.gross)}
+              </Badge>
+              <Badge>Líquido a personas: {money(totals.net)}</Badge>
+              <Badge>Retención: {money(totals.withholding)}</Badge>
+            </div>
+            <p className="muted">
+              El bruto ya incluye líquido y retención.{' '}
+              {totals.pending
+                ? `Subtotal revisado: ${totals.pending} personas pendientes; no es el total completo.`
+                : 'Total de la semana seleccionada.'}
+            </p>
+          </>
+        )}
         <div className="row wrap">
           <label>
             Fecha de emisión de boletas
             <input type="date" value={issueDate} onChange={(e) => setIssueDate(e.target.value)} />
           </label>
           <button className="btn primary" disabled={busy || !!calculated.error} onClick={download}>
-            {busy ? 'Generando…' : 'Excel detallado de pagos'}
+            {busy ? 'Generando…' : 'Excel semanal de boletas'}
           </button>
         </div>
         <p>
@@ -95,7 +127,7 @@ export function Payments({ data, date, demo, notify, link }: ViewProps) {
         </p>
         <p className="muted">
           Un día se cuenta una sola vez, aunque tenga varios turnos, y solo si existe asistencia
-          «Asistió». Los contratos usan un líquido manual que ya debe incluir sus horas extra.
+          «Asistió». Los contratos y sus anticipos se preparan en la pestaña mensual.
         </p>
         <p className="muted">
           Retención del receptor:{' '}
@@ -182,22 +214,27 @@ export function Payments({ data, date, demo, notify, link }: ViewProps) {
                 notify('Demostración de solo lectura.');
                 return;
               }
-              const f = new FormData(e.currentTarget),
-                contract = selected.worker.employment_type === 'contrato';
+              const f = new FormData(e.currentTarget);
+              let minutes: number;
+              try {
+                minutes = parseOvertime(String(f.get('overtime_hours') ?? '0'));
+              } catch (e) {
+                setMessage(e instanceof Error ? e.message : 'Revisa las horas extra');
+                return;
+              }
               setBusy(true);
               const result = await safeMutate('payment-save', {
                 worker_id: selected.worker.id,
                 week_start: start,
-                overtime_minutes: contract
-                  ? 0
-                  : Number(f.get('hours') || 0) * 60 + Number(f.get('minutes') || 0),
+                overtime_minutes: minutes,
                 additions: Number(f.get('additions') || 0),
                 deductions: Number(f.get('deductions') || 0),
-                contract_net:
-                  contract && String(f.get('contract_net') ?? '').trim() !== ''
-                    ? Number(f.get('contract_net'))
-                    : null,
-                notes: String(f.get('notes') ?? ''),
+                contract_net: null,
+                notes:
+                  String(f.get('notes') ?? '').trim() ||
+                  (minutes > 0 && !Number(f.get('additions')) && !Number(f.get('deductions'))
+                    ? `Horas extra manuales: ${Math.floor(minutes / 60)} h ${minutes % 60} min`
+                    : ''),
                 version: selected.entry?.version ?? 0,
               });
               setBusy(false);
@@ -213,44 +250,7 @@ export function Payments({ data, date, demo, notify, link }: ViewProps) {
               Días confirmados: {selected.days}. {selected.pending} turnos terminados pendientes de
               asistencia.
             </p>
-            {selected.worker.employment_type === 'boleta' ? (
-              <div className="row wrap">
-                <label>
-                  Horas extra completas
-                  <input
-                    type="number"
-                    name="hours"
-                    min={0}
-                    max={168}
-                    step={1}
-                    defaultValue={Math.floor(selected.overtimeMinutes / 60)}
-                  />
-                </label>
-                <label>
-                  Minutos extra
-                  <input
-                    type="number"
-                    name="minutes"
-                    min={0}
-                    max={59}
-                    step={1}
-                    defaultValue={selected.overtimeMinutes % 60}
-                  />
-                </label>
-              </div>
-            ) : (
-              <label>
-                Líquido de contrato informado (CLP, incluye sus HE)
-                <input
-                  type="number"
-                  name="contract_net"
-                  min={0}
-                  max={1000000000}
-                  step={1}
-                  defaultValue={selected.entry?.contract_net ?? ''}
-                />
-              </label>
-            )}
+            <OvertimeInput initialMinutes={selected.overtimeMinutes} />
             <label>
               Otros honorarios / adicionales líquidos (CLP)
               <input

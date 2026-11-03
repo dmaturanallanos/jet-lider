@@ -1,5 +1,7 @@
 # Preparación semanal de pagos
 
+> Especificación histórica de la migración 202611030014. La migración 202611030015 separa boletas semanales y contratos mensuales con anticipo fijo de $200.000. Los contratos ya no admiten nuevas preparaciones semanales. Consulta las reglas actuales en [Pagos mensuales y gastos](PAGOS_MENSUALES.md).
+
 ## Configurar trabajadores
 
 Equipo → Editar ficha → Modalidad de pago permite elegir Boleta de honorarios, Contrato o Sin definir. El dato vive en `worker_private_details`, protegido por las políticas privadas existentes; no se agregó a la tabla compartida `workers` ni a la función de contacto del propio trabajador. Cambiarlo utiliza la operación de ficha con control de versión y auditoría.

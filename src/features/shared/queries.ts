@@ -6,6 +6,7 @@ import { canManage } from '@/lib/permissions';
 import type { View, WorkspaceData } from './types';
 import type { Row } from '@/types/database';
 import { paymentSourceSchema } from '@/features/payments/calculations';
+import { monthStart, monthlySourceSchema } from '@/features/payments/monthly-calculations';
 export async function getWorkspace(
   view: View,
   date: string,
@@ -15,12 +16,20 @@ export async function getWorkspace(
   const admin = canManage(profile.role);
   if (view === 'pagos') {
     if (!admin) throw new Error('No tienes acceso a pagos.');
-    const { data, error } = await db.rpc('payment_week', { week_start: monday(date) });
+    const [{ data, error }, monthly] = await Promise.all([
+      db.rpc('payment_week', { week_start: monday(date) }),
+      db.rpc('contract_payment_month', { month_start: monthStart(date) }),
+    ]);
     if (error)
       throw new Error(
         'No se pudieron cargar los pagos. Revisa la conexión y la migración 202611030014.',
       );
+    if (monthly.error)
+      throw new Error(
+        'No se pudieron cargar los contratos mensuales. Revisa la migración 202611030015 y la conexión.',
+      );
     return {
+      contractPayments: monthlySourceSchema.parse(monthly.data),
       payments: paymentSourceSchema.parse(data),
       profile,
       now: new Date().toISOString(),
