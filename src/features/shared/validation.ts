@@ -15,6 +15,7 @@ export const workerSchema = z.object({
   email: z.union([z.email(), z.literal('')]).default(''),
   phone: z.string().max(40).default(''),
   notes: optional,
+  employment_type: z.enum(['boleta', 'contrato']).nullable().optional(),
 });
 export const shiftSchema = z
   .object({

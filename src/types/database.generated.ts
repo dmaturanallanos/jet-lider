@@ -162,6 +162,57 @@ export type Database = {
         Update: { id?: string; actor_id?: string; created_at?: string; workspace_id?: string };
         Relationships: [];
       };
+      payment_entries: {
+        Row: {
+          id: string;
+          workspace_id: string;
+          worker_id: string;
+          week_start: string;
+          overtime_minutes: number;
+          additions: number;
+          deductions: number;
+          contract_net: number | null;
+          notes: string;
+          created_by: string;
+          updated_by: string;
+          created_at: string;
+          updated_at: string;
+          version: number;
+        };
+        Insert: {
+          id?: string;
+          workspace_id?: string;
+          worker_id: string;
+          week_start: string;
+          overtime_minutes?: number;
+          additions?: number;
+          deductions?: number;
+          contract_net?: number | null;
+          notes?: string;
+          created_by?: string;
+          updated_by?: string;
+          created_at?: string;
+          updated_at?: string;
+          version?: number;
+        };
+        Update: {
+          id?: string;
+          workspace_id?: string;
+          worker_id?: string;
+          week_start?: string;
+          overtime_minutes?: number;
+          additions?: number;
+          deductions?: number;
+          contract_net?: number | null;
+          notes?: string;
+          created_by?: string;
+          updated_by?: string;
+          created_at?: string;
+          updated_at?: string;
+          version?: number;
+        };
+        Relationships: [];
+      };
       profiles: {
         Row: {
           id: string;
@@ -595,6 +646,7 @@ export type Database = {
           updated_at: string;
           version: number;
           workspace_id: string;
+          employment_type: string | null;
         };
         Insert: {
           id: string;
@@ -605,6 +657,7 @@ export type Database = {
           updated_at?: string;
           version?: number;
           workspace_id?: string;
+          employment_type?: string | null;
         };
         Update: {
           id?: string;
@@ -615,6 +668,7 @@ export type Database = {
           updated_at?: string;
           version?: number;
           workspace_id?: string;
+          employment_type?: string | null;
         };
         Relationships: [];
       };
@@ -673,10 +727,10 @@ export type Database = {
     Views: { [_ in never]: never };
     Functions: {
       is_active: { Args: Record<string, never>; Returns: boolean };
-      is_admin: { Args: Record<string, never>; Returns: boolean };
       can_edit_entry: { Args: { target: string }; Returns: boolean };
       can_task: { Args: { target: string }; Returns: boolean };
       can_entry: { Args: { target: string }; Returns: boolean };
+      is_admin: { Args: Record<string, never>; Returns: boolean };
       save_shift_batch: {
         Args: { request_id: string; items: Json; series_description?: string };
         Returns: number;
@@ -686,6 +740,7 @@ export type Database = {
         Args: Record<string, never>;
         Returns: { email: string | null; phone: string | null }[];
       };
+      save_payment_entry: { Args: { payload: Json; expected_version: number }; Returns: undefined };
       save_attendance: {
         Args: {
           target_shift: string;
@@ -696,13 +751,13 @@ export type Database = {
         Returns: undefined;
       };
       set_avatar: { Args: { target_worker: string; object_path: string }; Returns: undefined };
-      save_absence: { Args: { payload: Json; private_note: string }; Returns: string };
+      invitee_account: { Args: { target_worker: string }; Returns: string };
       my_worker_id: { Args: Record<string, never>; Returns: string };
       save_task: {
         Args: { payload: Json; assignees: string[]; expected_version?: number };
         Returns: string;
       };
-      invitee_account: { Args: { target_worker: string }; Returns: string };
+      save_absence: { Args: { payload: Json; private_note: string }; Returns: string };
       save_worker: {
         Args: { payload: Json; private_data: Json; expected_version?: number };
         Returns: string;
@@ -712,13 +767,14 @@ export type Database = {
         Returns: string;
       };
       current_workspace: { Args: Record<string, never>; Returns: string };
+      dashboard_summary: { Args: { day: string; week_start: string }; Returns: Json };
+      attendance_week: { Args: { week_start: string }; Returns: Json };
+      payment_week: { Args: { week_start: string }; Returns: Json };
       delete_operational_record: {
         Args: { record_kind: string; target_id: string; expected_version: number };
         Returns: Json;
       };
-      dashboard_summary: { Args: { day: string; week_start: string }; Returns: Json };
       worker_impact: { Args: { target: string }; Returns: Json };
-      attendance_week: { Args: { week_start: string }; Returns: Json };
     };
     Enums: { [_ in never]: never };
     CompositeTypes: { [_ in never]: never };

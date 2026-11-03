@@ -31,6 +31,7 @@ export default async function Page({
       'perfil',
       'configuracion',
       'mas',
+      'pagos',
     ].includes(view)
   )
     notFound();
@@ -46,6 +47,11 @@ export default async function Page({
   for (const key of ['dueFrom', 'dueTo'])
     if (q[key] && !z.iso.date().safeParse(q[key]).success) delete q[key];
   if (!demo && !(await optionalAuth())) return <AuthEntryRedirect />;
+  if (!demo && view === 'pagos') {
+    const { requireSession } = await import('@/features/auth/session');
+    const session = await requireSession();
+    if (session.profile.role !== 'admin') redirect('/');
+  }
   const data = demo ? filterDemo(demoData(date), q) : await getWorkspace(view, date, q);
   if (view === 'equipo' && data.profile.role !== 'admin') redirect('/');
   return (

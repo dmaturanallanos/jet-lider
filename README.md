@@ -148,6 +148,14 @@ El botón **Excel semanal de asistencia** descarga un `.xlsx` con resumen por tr
 
 Los detalles de observaciones, tareas, comentarios y trabajadores incorporan **Eliminar**, con confirmación y auditoría. Eliminar una observación incluye sus fotografías; eliminar una tarea incluye responsables, comentarios y evidencias, pero exige corregir antes cualquier referencia de bitácora. Solo se eliminan trabajadores sin cuenta vinculada ni historial operativo: si tienen registros, se deben corregir esas relaciones o desactivar la ficha. Las fotos se limpian en el servidor; ante fallos, se informa la limpieza pendiente y puede utilizarse el script de huérfanos. Consulta [reglas, migración y verificación](docs/ASISTENCIA_EXCEL_CORRECCIONES.md).
 
+### Modalidad y preparación de pagos
+
+Aplica la migración `202611030014_payment_preparation.sql`. En Equipo → Editar ficha, selecciona **Boleta de honorarios** o **Contrato**. Es información privada del administrador de ese espacio; los trabajadores no la consultan desde el calendario. Las fichas existentes quedan sin modalidad hasta configurarlas explícitamente.
+
+En **Pagos** (en celular, Más → Pagos), el día de honorarios vale **$28.500 líquidos** y la hora extra **$3.166 líquidos**. Los días son fechas locales distintas con asistencia confirmada; dos turnos del mismo día no duplican el pago. Las HE se ingresan manualmente en horas y minutos. Los contratos usan un líquido manual que ya incluye sus HE; no se calculan cotizaciones, impuestos laborales ni liquidaciones de sueldo.
+
+La fecha de emisión determina la tasa de honorarios. Para 2026, el bruto se calcula como líquido / 0,8475, con retención de 15,25 % según el [SII](https://www.sii.cl/destacados/boletas_honorarios/index.html). El resultado se redondea a pesos y se presentan líquido, retención y bruto separados. El Excel contiene los pagos por trabajador, totales y respaldo de asistencia; no genera boletas ni transfiere dinero. Se bloquea si hay modalidades pendientes, contratos sin líquido, montos negativos o turnos ya terminados sin asistencia registrada. [Ver reglas y verificación](docs/PAGOS.md).
+
 Se conserva la hora de Chile al repetir/copiar; nunca se suman bloques fijos de 24 horas. Se rechazan explícitamente horas ambiguas o inexistentes. La vista previa muestra duraciones reales; un cambio de horario puede sumar o restar una hora respecto de la diferencia del reloj.
 
 ## Datos, permisos y mantenimiento

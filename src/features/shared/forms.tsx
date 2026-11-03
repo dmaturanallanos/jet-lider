@@ -99,6 +99,7 @@ export function EditorModal({ editor, data, date, onClose, notify }: Props) {
           email: text(f, 'email'),
           phone: text(f, 'phone'),
           notes: text(f, 'notes'),
+          employment_type: text(f, 'employment_type') || null,
         };
       }
       if (editor.kind === 'task') {
@@ -259,6 +260,14 @@ export function EditorModal({ editor, data, date, onClose, notify }: Props) {
                 <label>
                   Cargo o función
                   <input name="job_title" defaultValue={w?.job_title ?? ''} />
+                </label>
+                <label>
+                  Modalidad de pago (privada)
+                  <select name="employment_type" defaultValue={privateData?.employment_type ?? ''}>
+                    <option value="">Sin definir</option>
+                    <option value="boleta">Boleta de honorarios</option>
+                    <option value="contrato">Contrato</option>
+                  </select>
                 </label>
                 <label>
                   Correo privado

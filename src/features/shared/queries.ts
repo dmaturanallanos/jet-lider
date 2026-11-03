@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { canManage } from '@/lib/permissions';
 import type { View, WorkspaceData } from './types';
 import type { Row } from '@/types/database';
+import { paymentSourceSchema } from '@/features/payments/calculations';
 export async function getWorkspace(
   view: View,
   date: string,
@@ -12,6 +13,36 @@ export async function getWorkspace(
 ): Promise<WorkspaceData> {
   const { db, profile } = await requireSession();
   const admin = canManage(profile.role);
+  if (view === 'pagos') {
+    if (!admin) throw new Error('No tienes acceso a pagos.');
+    const { data, error } = await db.rpc('payment_week', { week_start: monday(date) });
+    if (error)
+      throw new Error(
+        'No se pudieron cargar los pagos. Revisa la conexión y la migración 202611030014.',
+      );
+    return {
+      payments: paymentSourceSchema.parse(data),
+      profile,
+      now: new Date().toISOString(),
+      authors: [],
+      workers: [],
+      privateDetails: [],
+      invitations: [],
+      shifts: [],
+      shiftTypes: [],
+      absences: [],
+      tasks: [],
+      assignees: [],
+      entries: [],
+      activity: [],
+      comments: [],
+      taskFiles: [],
+      entryFiles: [],
+      contact: null,
+      hasMore: false,
+      detailHistory: [],
+    };
+  }
   const start =
     view === 'turnos' && params.mode === 'month' ? monday(date.slice(0, 7) + '-01') : monday(date);
   const days = params.mode === 'month' ? 42 : 7;

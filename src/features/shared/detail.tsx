@@ -287,6 +287,14 @@ export function Detail(props: ViewProps & { onClose: () => void }) {
               {worker.active ? 'Activo' : 'Inactivo'}
             </Badge>
             <p>{worker.job_title || 'Sin cargo definido'}</p>
+            <p>
+              Modalidad:{' '}
+              {privateData?.employment_type === 'boleta'
+                ? 'Boleta de honorarios'
+                : privateData?.employment_type === 'contrato'
+                  ? 'Contrato'
+                  : 'Sin definir'}
+            </p>
             <p>Correo: {privateData?.email || 'Sin registrar'}</p>
             <p>Teléfono: {privateData?.phone || 'Sin registrar'}</p>
             <div className="notice">Notas privadas: {privateData?.notes || 'Sin notas'}</div>

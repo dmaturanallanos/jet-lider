@@ -24,6 +24,7 @@ const settings = await settingsResponse.json();
 const expected = [
   'workspaces',
   'shift_attendance',
+  'payment_entries',
   'workers',
   'profiles',
   'worker_private_details',

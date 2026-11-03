@@ -37,7 +37,16 @@ test('acceso cerrado y sin registro público', async ({ page }) => {
 test('navegación operativa responsive sin desbordamiento de página', async ({ page }, info) => {
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
-  for (const view of ['', 'turnos', 'tareas', 'bitacora', 'equipo', 'configuracion', 'mas']) {
+  for (const view of [
+    '',
+    'turnos',
+    'tareas',
+    'bitacora',
+    'equipo',
+    'pagos',
+    'configuracion',
+    'mas',
+  ]) {
     await page.goto(`/demo/${view}?date=2026-11-02`);
     await expect(page.getByText('Demostración · solo lectura.', { exact: false })).toBeVisible();
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
@@ -110,6 +119,35 @@ test('Excel requiere sesión y no devuelve información privada sin autenticar',
   const result = await request.get('/api/reports/attendance?week=2020-11-02');
   expect(result.status()).toBe(401);
   expect(result.headers()['cache-control']).toContain('no-store');
+});
+test('pagos muestra tarifas líquidas, HE manuales y contratos sin guardar datos ficticios', async ({
+  page,
+}) => {
+  await page.goto('/demo/pagos?date=2026-11-02');
+  await expect(
+    page.getByRole('heading', { name: 'Preparación de pagos', exact: true }),
+  ).toBeVisible();
+  await expect(page.getByText('$28.500 líquidos por día', { exact: true })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Ver tasa SII', exact: true })).toHaveAttribute(
+    'href',
+    'https://www.sii.cl/destacados/boletas_honorarios/index.html',
+  );
+  await page.getByRole('button', { name: 'Preparar pago', exact: true }).first().click();
+  await expect(page.getByLabel('Horas extra completas')).toBeVisible();
+  await page.getByRole('button', { name: 'Guardar preparación de pago', exact: true }).click();
+  await expect(
+    page.getByRole('status').filter({ hasText: 'Demostración de solo lectura.' }),
+  ).toBeVisible();
+  await page.getByRole('button', { name: 'Cerrar', exact: true }).click();
+  await page.getByRole('button', { name: 'Preparar pago', exact: true }).nth(1).click();
+  await expect(
+    page.getByLabel('Líquido de contrato informado (CLP, incluye sus HE)'),
+  ).toBeVisible();
+});
+test('planilla de pagos rechaza descargas sin sesión', async ({ request }) => {
+  const response = await request.get('/api/reports/payments?week=2026-11-02&issueDate=2026-11-03');
+  expect(response.status()).toBe(401);
+  expect(response.headers()['cache-control']).toContain('no-store');
 });
 test('tareas con detalle accesible y tablero', async ({ page }) => {
   await page.goto('/demo/tareas?date=2026-11-02');

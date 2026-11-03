@@ -40,6 +40,13 @@ export function Workers({ data, params, link, edit, demo, notify }: ViewProps) {
                 <Avatar name={w.full_name} color={w.color} />
                 <Badge tone={w.active ? 'green' : ''}>{w.active ? 'Activo' : 'Inactivo'}</Badge>
               </div>
+              <Badge>
+                {p?.employment_type === 'boleta'
+                  ? 'Boleta de honorarios'
+                  : p?.employment_type === 'contrato'
+                    ? 'Contrato'
+                    : 'Modalidad sin definir'}
+              </Badge>
               <div>
                 <h2>{w.full_name}</h2>
                 <p className="muted" style={{ fontSize: 12, marginTop: 4 }}>

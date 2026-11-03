@@ -14,6 +14,7 @@ import {
   workerSchema,
 } from './validation';
 import type { Json } from '@/types/database';
+import { paymentInputSchema } from '@/features/payments/calculations';
 export type ActionResult = { ok: boolean; message: string };
 function check(error: { message: string; code?: string } | null) {
   if (!error) return;
@@ -45,6 +46,20 @@ export async function mutate(action: string, input: unknown): Promise<ActionResu
   try {
     const { db, user, profile } = await requireSession();
     switch (action) {
+      case 'payment-save': {
+        await requireAdmin();
+        const { version, ...payload } = paymentInputSchema.parse(input);
+        const { error } = await db.rpc('save_payment_entry', {
+          payload,
+          expected_version: version,
+        });
+        if (error?.code === 'PGRST202')
+          throw new Error(
+            'Falta aplicar la migración 202611030014. No se guardaron los datos de pago.',
+          );
+        check(error);
+        break;
+      }
       case 'attendance': {
         await requireAdmin();
         const v = z
@@ -154,7 +169,12 @@ export async function mutate(action: string, input: unknown): Promise<ActionResu
         }
         const { error } = await db.rpc('save_worker', {
           payload: v,
-          private_data: { email: v.email, phone: v.phone, notes: v.notes },
+          private_data: {
+            email: v.email,
+            phone: v.phone,
+            notes: v.notes,
+            employment_type: v.employment_type,
+          },
           expected_version: v.version,
         });
         check(error);

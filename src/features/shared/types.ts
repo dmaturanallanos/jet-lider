@@ -1,7 +1,17 @@
 import type { Row } from '@/types/database';
+import type { PaymentSource } from '@/features/payments/calculations';
 export type View =
-  'inicio' | 'turnos' | 'tareas' | 'bitacora' | 'equipo' | 'perfil' | 'configuracion' | 'mas';
+  | 'inicio'
+  | 'turnos'
+  | 'tareas'
+  | 'bitacora'
+  | 'equipo'
+  | 'perfil'
+  | 'configuracion'
+  | 'mas'
+  | 'pagos';
 export type WorkspaceData = {
+  payments?: PaymentSource;
   attendance?: Row<'shift_attendance'>[];
   administrators?: Row<'profiles'>[];
   now: string;

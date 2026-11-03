@@ -30,6 +30,7 @@ import { Tasks } from '@/features/tasks/tasks';
 import { Logbook } from '@/features/logbook/logbook';
 import { Workers } from '@/features/workers/workers';
 import { Settings } from '@/features/settings/settings';
+import { Payments } from '@/features/payments/payments';
 import { signOut } from '@/features/auth/actions';
 import { PwaStatus, useOnline } from '@/components/pwa';
 import { useLiveUpdates } from '@/hooks/use-live-updates';
@@ -40,9 +41,14 @@ const navigation = [
   { id: 'tareas', label: 'Tareas', icon: ClipboardList },
   { id: 'bitacora', label: 'Bitácora', icon: NotebookPen },
   { id: 'equipo', label: 'Equipo', icon: Users },
+  { id: 'pagos', label: 'Pagos', icon: Download },
   { id: 'configuracion', label: 'Configuración', icon: Settings2 },
 ] as const;
 const titles: Record<View, [string, string]> = {
+  pagos: [
+    'Preparación de pagos',
+    'Días confirmados, horas extra manuales y montos para emitir boletas.',
+  ],
   inicio: ['Tu operación, al día', 'Turnos, pendientes y el contexto que necesita tu equipo.'],
   turnos: ['Calendario de turnos', 'Coordina la cobertura y planifica la semana de tu equipo.'],
   tareas: ['Tareas de la operación', 'Responsables claros. Pendientes bajo control.'],
@@ -124,7 +130,7 @@ export function Workspace({
         </Link>
         <nav className="nav" aria-label="Navegación principal">
           {navigation
-            .filter((n) => admin || n.id !== 'equipo')
+            .filter((n) => admin || !['equipo', 'pagos'].includes(n.id))
             .map((n) => (
               <Link className={view === n.id ? 'active' : ''} href={link(n.id)} key={n.id}>
                 <n.icon />
@@ -220,11 +226,13 @@ export function Workspace({
           {view === 'turnos' && <Calendar {...props} />} {view === 'tareas' && <Tasks {...props} />}{' '}
           {view === 'bitacora' && <Logbook {...props} />}{' '}
           {view === 'equipo' && admin && <Workers {...props} />}{' '}
+          {view === 'pagos' && admin && <Payments {...props} />}
           {['perfil', 'configuracion'].includes(view) && <Settings {...props} />}{' '}
           {view === 'mas' && (
             <div className="panel">
               {[
                 { id: 'equipo' as View, label: 'Equipo', icon: Users, show: admin },
+                { id: 'pagos' as View, label: 'Pagos', icon: Download, show: admin },
                 { id: 'perfil' as View, label: 'Mi perfil', icon: UserRound, show: true },
                 {
                   id: 'configuracion' as View,
