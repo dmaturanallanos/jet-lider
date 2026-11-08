@@ -128,6 +128,7 @@ Si cambias el correo después de reservar una invitación, el sistema exige reso
 
 ## Uso operativo
 
+- **Equipo:** abre Activos por defecto; Inactivos muestra por separado las personas desactivadas. La búsqueda y la paginación respetan esa selección. Cada ficha permite desactivar (con revisión de pendientes), reactivar o eliminar con confirmación. El cambio de estado conserva los datos privados y el historial, bloquea nuevas asignaciones y acceso cuando está inactivo y comprueba la versión para evitar sobrescribir otra edición. Solo se eliminan fichas sin cuenta vinculada ni registros asociados, incluidos pagos; para una salida con historial utiliza Desactivar. No requiere migraciones adicionales a las ya aplicadas.
 - **Turnos:** semana de lunes a domingo, agenda diaria, mes, mis turnos y cuadrícula desplazable. La vista semanal móvil usa agenda y permite abrir la cuadrícula. Los filtros y la fecha permanecen en la URL.
 - **Programación:** permite vacantes, varios turnos diarios, responsables múltiples, repetición de hasta 90 días y copia de semana con vista previa. Un lote admite hasta 500 turnos y se guarda de forma atómica. La copia consulta la semana completa, independientemente de los filtros de pantalla.
 - **Series:** abre un turno, edítalo y selecciona aplicar a las ocurrencias futuras. Se consultan sus versiones actuales y el lote se valida antes de guardar.

@@ -1,4 +1,36 @@
 import { test, expect } from '@playwright/test';
+test('equipo separa activos e inactivos y ofrece acciones protegidas por trabajador', async ({
+  page,
+}) => {
+  await page.goto('/demo/equipo?date=2026-11-02');
+  await expect(page.getByRole('link', { name: 'Activos', exact: true })).toHaveAttribute(
+    'aria-current',
+    'page',
+  );
+  const worker = page.getByRole('region', { name: 'Camila Rojas', exact: true });
+  await expect(worker).toBeVisible();
+  await worker.getByRole('button', { name: 'Desactivar trabajador', exact: true }).click();
+  await expect(
+    page.getByRole('status').filter({ hasText: 'Demostración de solo lectura.' }),
+  ).toBeVisible();
+  await worker.getByRole('button', { name: 'Eliminar trabajador', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Confirmar eliminación' })).toHaveCount(0);
+  await page.getByRole('link', { name: 'Inactivos', exact: true }).click();
+  await expect(page).toHaveURL(/active=false/);
+  await expect(page.getByRole('link', { name: 'Inactivos', exact: true })).toHaveAttribute(
+    'aria-current',
+    'page',
+  );
+  await expect(
+    page.getByText('No hay trabajadores inactivos en esta consulta', { exact: true }),
+  ).toBeVisible();
+  await page.getByLabel('Buscar trabajador').fill('Camila');
+  await page.getByRole('button', { name: 'Buscar', exact: true }).click();
+  await expect(page).toHaveURL(/active=false/);
+  await expect(page.getByRole('region', { name: 'Camila Rojas', exact: true })).toHaveCount(0);
+  await page.getByRole('link', { name: 'Activos', exact: true }).click();
+  await expect(worker).toBeVisible();
+});
 test('el ingreso admite contraseñas existentes de menos de doce caracteres', async ({ page }) => {
   await page.goto('/acceso');
   await page.getByText('Usar contraseña de mi cuenta', { exact: true }).click();

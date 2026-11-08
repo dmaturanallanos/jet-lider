@@ -89,8 +89,7 @@ export async function getWorkspace(
       const term = params.q.replace(/[%_,()]/g, ' ').slice(0, 120);
       wq = wq.or(`full_name.ilike.%${term}%,nickname.ilike.%${term}%,job_title.ilike.%${term}%`);
     }
-    if (['true', 'false'].includes(params.active ?? ''))
-      wq = wq.eq('active', params.active === 'true');
+    wq = wq.eq('active', params.active !== 'false');
   }
   if (params.dueFrom && z.iso.date().safeParse(params.dueFrom).success)
     tq = tq.gte('due_at', dayRange(params.dueFrom).start);

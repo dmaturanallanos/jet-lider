@@ -63,6 +63,44 @@ afterEach(async () => {
 afterAll(async () => {
   await db?.close();
 });
+it('separa inactivos sin perder datos, controla versiones y protege cambios de estado entre espacios', async () => {
+  await db.query(
+    "insert into worker_private_details(id,email,employment_type) values($1,'privado@test.invalid','boleta')",
+    [w],
+  );
+  await as(b);
+  expect(
+    (await db.query('update workers set active=false where id=$1 and version=1 returning id', [w]))
+      .rows,
+  ).toHaveLength(0);
+  await as(u);
+  expect(
+    (await db.query('update workers set active=false where id=$1 returning id', [w])).rows,
+  ).toHaveLength(0);
+  await as(a);
+  expect(
+    (await db.query('update workers set active=false where id=$1 and version=1 returning id', [w]))
+      .rows,
+  ).toHaveLength(1);
+  expect(
+    (await db.query('select id from workers where active=true and id=$1', [w])).rows,
+  ).toHaveLength(0);
+  expect(
+    (await db.query('select id from workers where active=false and id=$1', [w])).rows,
+  ).toHaveLength(1);
+  expect((await db.query('select id from shifts where worker_id=$1', [w])).rows).toHaveLength(1);
+  expect(
+    (await db.query('select employment_type from worker_private_details where id=$1', [w])).rows[0],
+  ).toEqual({ employment_type: 'boleta' });
+  expect(
+    (await db.query('update workers set active=true where id=$1 and version=1 returning id', [w]))
+      .rows,
+  ).toHaveLength(0);
+  expect(
+    (await db.query('update workers set active=true where id=$1 and version=2 returning id', [w]))
+      .rows,
+  ).toHaveLength(1);
+});
 it('marca presente o ausente, corrige con versión y permite volver a sin registrar', async () => {
   await db.query("select save_attendance($1,'present','Llegó',0)", [shiftId]);
   let r = (

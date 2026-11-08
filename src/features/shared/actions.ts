@@ -116,6 +116,10 @@ export async function mutate(action: string, input: unknown): Promise<ActionResu
           throw new Error(
             'Falta aplicar la migración 202611030013 en Supabase. No se eliminó el registro.',
           );
+        if (v.kind === 'worker' && error?.code === '23503')
+          throw new Error(
+            'Este trabajador conserva pagos u otros registros asociados. Desactívalo para apartarlo del equipo activo y conservar su historial.',
+          );
         check(error);
         const paths = z
           .array(
@@ -170,6 +174,30 @@ export async function mutate(action: string, input: unknown): Promise<ActionResu
             'Falta aplicar la migración 202611020011 en Supabase. No se otorgaron permisos.',
           );
         check(error);
+        break;
+      }
+      case 'worker-state': {
+        await requireAdmin();
+        const v = z
+          .object({
+            id,
+            version: z.number().int().positive(),
+            active: z.boolean(),
+            acknowledge: z.literal(true),
+          })
+          .parse(input);
+        const { data, error } = await db
+          .from('workers')
+          .update({ active: v.active })
+          .eq('id', v.id)
+          .eq('version', v.version)
+          .select('id')
+          .maybeSingle();
+        check(error);
+        if (!data)
+          throw new Error(
+            'El trabajador cambió o ya no está disponible. Recarga antes de continuar.',
+          );
         break;
       }
       case 'worker': {

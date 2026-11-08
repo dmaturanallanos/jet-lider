@@ -1,21 +1,48 @@
 'use client';
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { UserPlus, Mail, Search, ArrowUpRight } from 'lucide-react';
 import type { ViewProps } from '@/features/shared/view-props';
 import { Avatar, Badge, Empty, Status } from '@/components/ui/primitives';
 import { safeMutate as mutate } from '@/features/shared/client-mutation';
+import { DeleteRecord } from '@/features/shared/delete-record';
+import { WorkerState } from './worker-state';
 export function Workers({ data, params, link, edit, demo, notify }: ViewProps) {
+  const router = useRouter();
+  const active = params.active !== 'false';
   const [busy, setBusy] = useState<string | null>(null);
   const q = (params.q ?? '').toLowerCase();
   const workers = data.workers.filter(
     (w) =>
       `${w.full_name} ${w.nickname ?? ''} ${w.job_title ?? ''}`.toLowerCase().includes(q) &&
-      (!params.active || (params.active === 'true') === w.active),
+      active === w.active,
   );
   return (
     <>
+      <nav className="segmented" aria-label="Estado del equipo" style={{ marginBottom: 20 }}>
+        <Link
+          className={active ? 'selected' : ''}
+          aria-current={active ? 'page' : undefined}
+          href={link('equipo', { active: 'true', page: '', detail: '' })}
+        >
+          Activos
+        </Link>
+        <Link
+          className={!active ? 'selected' : ''}
+          aria-current={!active ? 'page' : undefined}
+          href={link('equipo', { active: 'false', page: '', detail: '' })}
+        >
+          Inactivos
+        </Link>
+      </nav>
+      <p className="muted" style={{ marginBottom: 16 }}>
+        {active
+          ? 'Equipo disponible para nuevas asignaciones. Las personas desactivadas están en Inactivos.'
+          : 'Trabajadores desactivados. Conservan su historial y puedes reactivarlos cuando regresen.'}
+      </p>
       <form className="filters">
+        <input type="hidden" name="active" value={String(active)} />
         <Search size={18} className="muted" style={{ alignSelf: 'center' }} />
         <input
           name="q"
@@ -23,11 +50,6 @@ export function Workers({ data, params, link, edit, demo, notify }: ViewProps) {
           placeholder="Nombre, apodo o función…"
           defaultValue={params.q}
         />
-        <select name="active" aria-label="Estado del trabajador" defaultValue={params.active ?? ''}>
-          <option value="">Todos los trabajadores</option>
-          <option value="true">Activos</option>
-          <option value="false">Inactivos</option>
-        </select>
         <button className="btn">Buscar</button>
       </form>
       <div className="teamgrid">
@@ -35,7 +57,7 @@ export function Workers({ data, params, link, edit, demo, notify }: ViewProps) {
           const p = data.privateDetails.find((p) => p.id === w.id),
             invite = data.invitations.find((i) => i.worker_id === w.id);
           return (
-            <section className="panel teamcard" key={w.id}>
+            <section className="panel teamcard" key={w.id} aria-label={w.full_name}>
               <div className="row spread">
                 <Avatar name={w.full_name} color={w.color} />
                 <Badge tone={w.active ? 'green' : ''}>{w.active ? 'Activo' : 'Inactivo'}</Badge>
@@ -96,15 +118,33 @@ export function Workers({ data, params, link, edit, demo, notify }: ViewProps) {
                   <UserPlus size={16} />
                 </button>
               </div>
+              <WorkerState worker={w} demo={demo} notify={notify} />
+              <DeleteRecord
+                kind="worker"
+                id={w.id}
+                version={w.version}
+                label="Eliminar trabajador"
+                description={`Se eliminará la ficha de ${w.full_name} y sus datos privados. Si tiene cuenta vinculada, turnos, tareas, ausencias o pagos asociados, utiliza Desactivar para conservar su historial.`}
+                demo={demo}
+                notify={notify}
+                onDeleted={() => router.refresh()}
+              />
             </section>
           );
         })}
       </div>
       {!workers.length && (
         <section className="panel">
-          <Empty title="No hay trabajadores en esta consulta">
-            Puedes registrar a una persona solo con su nombre. La cuenta de acceso se habilita
-            después.
+          <Empty
+            title={
+              active
+                ? 'No hay trabajadores activos en esta consulta'
+                : 'No hay trabajadores inactivos en esta consulta'
+            }
+          >
+            {active
+              ? 'Puedes registrar a una persona solo con su nombre o reactivarla desde Inactivos.'
+              : 'Las personas que desactives aparecerán aquí, separadas del equipo activo.'}
           </Empty>
         </section>
       )}
